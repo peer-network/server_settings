@@ -20,6 +20,20 @@ provider "opentelekomcloud" {
 # }
 
 # Data sources to discover existing resources
+
+
+data "opentelekomcloud_identity_project_v3" "current" {}
+
+# VPC Data Sources
+data "opentelekomcloud_vpc_v1" "all_vpcs" {}
+
+# For each VPC, get its subnets
+data "opentelekomcloud_vpc_subnet_v1" "all_subnets" {
+  for_each = toset([for vpc in data.opentelekomcloud_vpc_v1.all_vpcs.vpcs : vpc.id])
+  vpc_id   = each.value
+}
+
+
 data "opentelekomcloud_vpc_v1" "existing_vpcs" {}
 
 data "opentelekomcloud_networking_subnet_v2" "existing_subnets" {
@@ -30,14 +44,59 @@ data "opentelekomcloud_compute_instance_v2" "existing_instances" {}
 
 data "opentelekomcloud_rds_instance_v3" "existing_rds" {}
 
-# terraform.tfvars (create this file with your actual values)
-# access_key = "your-access-key"
-# secret_key = "your-secret-key"
-# tenant_name = "eu-de"
-# account_name = "OTC00000000001000122968"
-# region = "eu-de"
-# environment = "prod"
-# project_name = "myotcproject"
+# Compute instances
+data "opentelekomcloud_compute_instances_v2" "all_instances" {}
+
+# Security Groups
+data "opentelekomcloud_networking_secgroup_v2" "all_secgroups" {}
+
+# Available flavors
+data "opentelekomcloud_compute_flavors_v2" "all_flavors" {}
+
+# Available images
+data "opentelekomcloud_images_image_v2" "all_images" {
+  most_recent = true
+}
+
+# Key pairs
+data "opentelekomcloud_compute_keypairs_v2" "all_keypairs" {}
+
+# RDS instances (if any)
+data "opentelekomcloud_rds_instances_v3" "all_rds" {}
+
+# ELB load balancers
+data "opentelekomcloud_lb_loadbalancers_v2" "all_loadbalancers" {}
+
+# CCE clusters
+data "opentelekomcloud_cce_clusters_v3" "all_cce" {}
+
+# DNS zones
+data "opentelekomcloud_dns_zones_v2" "all_dns_zones" {}
+
+# Object Storage buckets
+data "opentelekomcloud_obs_buckets" "all_buckets" {}
+
+# DCS Redis instances
+data "opentelekomcloud_dcs_instances_v1" "all_dcs" {}
+
+# Local values for easier reference
+locals {
+  vpc_list      = data.opentelekomcloud_vpc_v1.all_vpcs.vpcs
+  instance_list = data.opentelekomcloud_compute_instances_v2.all_instances.instances
+  secgroup_list = data.opentelekomcloud_networking_secgroup_v2.all_secgroups.security_groups
+  
+  # Create a map of VPC ID to VPC details
+  vpc_map = {
+    for vpc in local.vpc_list :
+    vpc.id => vpc
+  }
+  
+  # Create a map of instance ID to instance details
+  instance_map = {
+    for instance in local.instance_list :
+    instance.id => instance
+  }
+}
 
 
 # Environment variables lookup
