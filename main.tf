@@ -1,3 +1,5 @@
+### Main TF file
+##  others are called were needed
 
 
 # Configure the OpenStack Provider for Telekom Cloud
@@ -12,14 +14,6 @@ provider "opentelekomcloud" {
   secret_key  = var.password
 }
 
-
-# # main.tf
-# provider "opentelekomcloud" {
-#   access_key  = var.access_key
-#   secret_key  = var.secret_key
-#   tenant_name = var.tenant_name
-#   region      = var.region
-# }
 
 
 # Get current region and project info
