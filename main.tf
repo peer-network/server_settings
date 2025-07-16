@@ -8,6 +8,8 @@ provider "opentelekomcloud" {
   user_name   = var.user_name
   password    = var.password != null ? var.password : lookup(var.env_vars, "OTC_PASSWORD", "")
   region      = var.region
+  access_key  = var.user_name
+  secret_key  = var.password
 }
 
 
@@ -19,124 +21,86 @@ provider "opentelekomcloud" {
 #   region      = var.region
 # }
 
-# Data sources to discover existing resources
 
-
+# Get current region and project info
 data "opentelekomcloud_identity_project_v3" "current" {}
 
-# VPC Data Sources
-data "opentelekomcloud_vpc_v1" "all_vpcs" {}
-
-# For each VPC, get its subnets
-data "opentelekomcloud_vpc_subnet_v1" "all_subnets" {
-  for_each = toset([for vpc in data.opentelekomcloud_vpc_v1.all_vpcs.vpcs : vpc.id])
-  vpc_id   = each.value
+# Simple approach - discover resources without complex for_each loops
+# VPC data source (single VPC query - you may need to specify filters)
+data "opentelekomcloud_vpc_v1" "default" {
+  # You can add filters here if needed
+  # name = "default"
 }
 
-
-data "opentelekomcloud_vpc_v1" "existing_vpcs" {}
-
-data "opentelekomcloud_networking_subnet_v2" "existing_subnets" {
-  count = length(data.opentelekomcloud_vpc_v1.existing_vpcs.vpcs)
+# Subnet data source (single subnet query - you may need to specify VPC ID)
+data "opentelekomcloud_vpc_subnet_v1" "default" {
+  # vpc_id = data.opentelekomcloud_vpc_v1.default.id
 }
 
-data "opentelekomcloud_compute_instance_v2" "existing_instances" {}
-
-data "opentelekomcloud_rds_instance_v3" "existing_rds" {}
-
-# Compute instances
-data "opentelekomcloud_compute_instances_v2" "all_instances" {}
+# Compute instances data source  
+data "opentelekomcloud_compute_instances_v2" "all" {}
 
 # Security Groups
-data "opentelekomcloud_networking_secgroup_v2" "all_secgroups" {}
+data "opentelekomcloud_networking_secgroup_v2" "all" {}
 
 # Available flavors
-data "opentelekomcloud_compute_flavors_v2" "all_flavors" {}
+data "opentelekomcloud_compute_flavors_v2" "all" {}
 
 # Available images
-data "opentelekomcloud_images_image_v2" "all_images" {
+data "opentelekomcloud_images_image_v2" "latest" {
   most_recent = true
 }
 
 # Key pairs
-data "opentelekomcloud_compute_keypairs_v2" "all_keypairs" {}
+data "opentelekomcloud_compute_keypairs_v2" "all" {}
 
-# RDS instances (if any)
-data "opentelekomcloud_rds_instances_v3" "all_rds" {}
+# RDS instances
+data "opentelekomcloud_rds_instances_v3" "all" {}
 
 # ELB load balancers
-data "opentelekomcloud_lb_loadbalancers_v2" "all_loadbalancers" {}
+data "opentelekomcloud_lb_loadbalancers_v2" "all" {}
 
 # CCE clusters
-data "opentelekomcloud_cce_clusters_v3" "all_cce" {}
+data "opentelekomcloud_cce_clusters_v3" "all" {}
 
 # DNS zones
-data "opentelekomcloud_dns_zones_v2" "all_dns_zones" {}
+data "opentelekomcloud_dns_zones_v2" "all" {}
 
 # Object Storage buckets
-data "opentelekomcloud_obs_buckets" "all_buckets" {}
+data "opentelekomcloud_obs_buckets" "all" {}
 
 # DCS Redis instances
-data "opentelekomcloud_dcs_instances_v1" "all_dcs" {}
+data "opentelekomcloud_dcs_instances_v1" "all" {}
+
+# ECS instances data source (alternative to compute_instances)
+data "opentelekomcloud_ecs_instances_v1" "all" {}
+
+# Networking data sources
+data "opentelekomcloud_networking_network_v2" "all" {}
+
+# VPC peering connections
+data "opentelekomcloud_vpc_peering_connections_v2" "all" {}
+
+# EIP data source
+data "opentelekomcloud_vpc_eips_v1" "all" {}
 
 # Local values for easier reference
 locals {
-  vpc_list      = data.opentelekomcloud_vpc_v1.all_vpcs.vpcs
-  instance_list = data.opentelekomcloud_compute_instances_v2.all_instances.instances
-  secgroup_list = data.opentelekomcloud_networking_secgroup_v2.all_secgroups.security_groups
+  # Extract data from data sources safely
+  compute_instances = try(data.opentelekomcloud_compute_instances_v2.all.instances, [])
+  ecs_instances     = try(data.opentelekomcloud_ecs_instances_v1.all.instances, [])
+  security_groups   = try(data.opentelekomcloud_networking_secgroup_v2.all.security_groups, [])
+  rds_instances     = try(data.opentelekomcloud_rds_instances_v3.all.instances, [])
+  loadbalancers     = try(data.opentelekomcloud_lb_loadbalancers_v2.all.loadbalancers, [])
+  cce_clusters      = try(data.opentelekomcloud_cce_clusters_v3.all.clusters, [])
+  dns_zones         = try(data.opentelekomcloud_dns_zones_v2.all.zones, [])
+  obs_buckets       = try(data.opentelekomcloud_obs_buckets.all.buckets, [])
+  dcs_instances     = try(data.opentelekomcloud_dcs_instances_v1.all.instances, [])
+  networks          = try(data.opentelekomcloud_networking_network_v2.all.networks, [])
+  peering_connections = try(data.opentelekomcloud_vpc_peering_connections_v2.all.peering_connections, [])
+  eips              = try(data.opentelekomcloud_vpc_eips_v1.all.eips, [])
   
-  # Create a map of VPC ID to VPC details
-  vpc_map = {
-    for vpc in local.vpc_list :
-    vpc.id => vpc
-  }
-  
-  # Create a map of instance ID to instance details
-  instance_map = {
-    for instance in local.instance_list :
-    instance.id => instance
-  }
+  # Project information
+  project_id   = data.opentelekomcloud_identity_project_v3.current.id
+  project_name = data.opentelekomcloud_identity_project_v3.current.name
 }
-
-
-# Environment variables lookup
-variable "env_vars" {
-  description = "Environment variables"
-  type        = map(string)
-  default     = {}
-}
-
-# Variables
-variable "auth_url" {
-  description = "OpenStack auth URL"
-  type        = string
-  default     = "https://iam.eu-de.otc.t-systems.com/v3"  # EU-DE region
-}
-
-# variable "domain_name" {
-#   description = "OpenStack domain name"
-#   type        = string
-# }
-
-# variable "tenant_name" {
-#   description = "OpenStack tenant/project name"
-#   type        = string
-# }
-
-# variable "user_name" {
-#   description = "OpenStack username"
-#   type        = string
-# }
-
-# variable "password" {
-#   description = "OpenStack password"
-#   type        = string
-#   sensitive   = true
-#   default     = null  # Will be populated from environment variable
-# }
-
-# variable "region" {
-#   description = "OpenStack region"
-#   type        = string
-#   default     = "eu-de"
-# }
