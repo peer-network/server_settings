@@ -61,30 +61,30 @@ variable "auth_url" {
   default     = "https://iam.eu-de.otc.t-systems.com/v3"  # EU-DE region
 }
 
-variable "domain_name" {
-  description = "OpenStack domain name"
-  type        = string
-}
+# variable "domain_name" {
+#   description = "OpenStack domain name"
+#   type        = string
+# }
 
-variable "tenant_name" {
-  description = "OpenStack tenant/project name"
-  type        = string
-}
+# variable "tenant_name" {
+#   description = "OpenStack tenant/project name"
+#   type        = string
+# }
 
-variable "user_name" {
-  description = "OpenStack username"
-  type        = string
-}
+# variable "user_name" {
+#   description = "OpenStack username"
+#   type        = string
+# }
 
-variable "password" {
-  description = "OpenStack password"
-  type        = string
-  sensitive   = true
-  default     = null  # Will be populated from environment variable
-}
+# variable "password" {
+#   description = "OpenStack password"
+#   type        = string
+#   sensitive   = true
+#   default     = null  # Will be populated from environment variable
+# }
 
-variable "region" {
-  description = "OpenStack region"
-  type        = string
-  default     = "eu-de"
-}
+# variable "region" {
+#   description = "OpenStack region"
+#   type        = string
+#   default     = "eu-de"
+# }
