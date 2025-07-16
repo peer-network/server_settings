@@ -1,3 +1,16 @@
+# provider.tf
+
+terraform {
+  required_version = ">= 1.0"
+  required_providers {
+    opentelekomcloud = {
+      source  = "opentelekomcloud/opentelekomcloud"
+      version = "~> 1.36"
+    }
+  }
+}
+
+
 provider "opentelekomcloud" {
     auth_url    = var.auth_url
     domain_name = var.domain_name
