@@ -18,13 +18,13 @@ provider "opentelekomcloud" {
 }
 
 
-# main.tf
-provider "opentelekomcloud" {
-  access_key  = var.access_key
-  secret_key  = var.secret_key
-  tenant_name = var.tenant_name
-  region      = var.region
-}
+# # main.tf
+# provider "opentelekomcloud" {
+#   access_key  = var.access_key
+#   secret_key  = var.secret_key
+#   tenant_name = var.tenant_name
+#   region      = var.region
+# }
 
 # Data sources to discover existing resources
 data "opentelekomcloud_vpc_v1" "existing_vpcs" {}
