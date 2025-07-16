@@ -1,11 +1,4 @@
-terraform {
-  required_providers {
-    openstack = {
-      source  = "terraform-provider-openstack/openstack"
-      version = "~> 1.54.0"
-    }
-  }
-}
+
 
 # Configure the OpenStack Provider for Telekom Cloud
 provider "opentelekomcloud" {

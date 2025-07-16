@@ -17,12 +17,6 @@ variable "domain_name" {
   default     = "TC00000000001000122968"
 }
 
-variable "region" {
-  description = "OTC region"
-  type        = string
-  default     = "eu-de"
-}
-
 variable "user_name" {
   description = "OTC access user"
   type        = string
