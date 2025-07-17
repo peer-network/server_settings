@@ -5,6 +5,12 @@ variable "tenant_name" {
   default     = "OTC00000000001000122968"
 }
 
+variable "var.auth_url" {
+  description = "OTC domain"
+  type        = string
+  default     = "TC00000000001000122968"
+}
+
 variable "region" {
   description = "OTC region"
   type        = string
