@@ -1,5 +1,5 @@
 # Telekom Cloud credentials
-domain_name = "TC00000000001000122968"
+domain_name = "OTC00000000001000122968"
 tenant_name = "OTC00000000001000122968"
 user_name   = "gogeek"
 password    = "your_admin_username"

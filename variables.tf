@@ -5,10 +5,10 @@ variable "tenant_name" {
   default     = "OTC00000000001000122968"
 }
 
-variable "var.auth_url" {
-  description = "OTC domain"
+variable "auth_url" {
+  description = "OTC auth url"
   type        = string
-  default     = "TC00000000001000122968"
+  default     = "https://iam.eu-de.otc.t-systems.com/v3"
 }
 
 variable "region" {

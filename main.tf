@@ -29,7 +29,7 @@ data "opentelekomcloud_compute_instances_v2" "all" {}
 data "opentelekomcloud_networking_secgroup_v2" "all" {}
 
 # Available flavors
-data "opentelekomcloud_compute_flavors_v2" "all" {}
+data "opentelekomcloud_compute_flavor_v2" "all" {}
 
 # Available images
 data "opentelekomcloud_images_image_v2" "latest" {
@@ -37,37 +37,37 @@ data "opentelekomcloud_images_image_v2" "latest" {
 }
 
 # Key pairs
-data "opentelekomcloud_compute_keypairs_v2" "all" {}
+data "opentelekomcloud_compute_keypair_v2" "all" {}
 
 # RDS instances
-data "opentelekomcloud_rds_instances_v3" "all" {}
+data "opentelekomcloud_rds_instance_v3" "all" {}
 
 # ELB load balancers
-data "opentelekomcloud_lb_loadbalancers_v2" "all" {}
+data "opentelekomcloud_lb_loadbalancer_v3" "all" {}
 
 # CCE clusters
 data "opentelekomcloud_cce_clusters_v3" "all" {}
 
 # DNS zones
-data "opentelekomcloud_dns_zones_v2" "all" {}
+data "opentelekomcloud_dns_zone_v2" "all" {}
 
 # Object Storage buckets
-data "opentelekomcloud_obs_buckets" "all" {}
+# data "opentelekomcloud_obs_bucket" "all" {}
 
 # DCS Redis instances
-data "opentelekomcloud_dcs_instances_v1" "all" {}
+# data "opentelekomcloud_dcs_instances_v1" "all" {}
 
 # ECS instances data source (alternative to compute_instances)
-data "opentelekomcloud_ecs_instances_v1" "all" {}
+# data "opentelekomcloud_ddm_instance_v1" "all" {}
 
 # Networking data sources
 data "opentelekomcloud_networking_network_v2" "all" {}
 
 # VPC peering connections
-data "opentelekomcloud_vpc_peering_connections_v2" "all" {}
+data "opentelekomcloud_vpc_peering_v2" "all" {}
 
 # EIP data source
-data "opentelekomcloud_vpc_eips_v1" "all" {}
+data "opentelekomcloud_vpc_eip_v1" "all" {}
 
 # Local values for easier reference
 locals {
