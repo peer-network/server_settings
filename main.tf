@@ -74,7 +74,7 @@ locals {
   # Extract data from data sources safely
   compute_instances = try(data.opentelekomcloud_compute_instances_v2.all.instances, [])
   #ecs_instances     = try(data.opentelekomcloud_ecs_instances_v1.all.instances, [])
-  security_groups   = try(data.opentelekomcloud_networking_secgroup_v2.all.security_groups, [])
+  security_groups   = try(data.opentelekomcloud_networking_secgroup_v2.all.name, [])
   rds_instances     = try(data.opentelekomcloud_rds_instance_v3.all.instances, [])
   loadbalancers     = try(data.opentelekomcloud_lb_loadbalancer_v3.all.loadbalancers, [])
   cce_clusters      = try(data.opentelekomcloud_cce_clusters_v3.all.clusters, [])
