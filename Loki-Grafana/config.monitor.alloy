@@ -1,0 +1,93 @@
+// Beta_Testing Monitor config file for Alloy (Grafana)
+// Enable logging
+logging {
+  level = "debug"
+  format = "logfmt"
+}
+
+// Loki client (Writer)
+loki.write "default" {
+  endpoint {
+    url = "http://10.50.1.150:3100/loki/api/v1/push"
+  }
+}
+
+// System syslog file (simplified for testing)
+loki.source.file "syslog" {
+  targets = [
+    {
+      "__path__" = "/var/log/syslog",
+      job = "syslog",
+    },
+  ]
+  forward_to = [loki.write.default.receiver]
+}
+
+// Auth logs
+loki.source.file "auth" {
+  targets = [
+    {
+      "__path__" = "/var/log/auth.log",
+      job = "auth",
+      host = "monitoring-server",
+    },
+  ]
+  forward_to = [loki.write.default.receiver]
+}
+
+// JournalD logs
+loki.source.journal "systemd" {
+  labels = {
+    job = "systemd",
+    host = "monitoring-server",
+  }
+  forward_to = [loki.write.default.receiver]
+}
+
+// Postman cron logs
+loki.source.file "cron_monitor" {
+  targets = [
+    {
+      "__path__" = "/var/log/postman_logs/cron.log",
+      job = "cron-monitor",
+      host = "monitoring-server",
+    },
+  ]
+  forward_to = [loki.write.default.receiver]
+}
+
+// Mintbot log in var log
+loki.source.file "crom_mintbot_var_logs" {
+  targets = [
+    {
+      "__path__" = "/var/log/mintlog/mint.log",
+      job = "gem_mintbot",
+      host = "monitoring-server",
+    },
+  ]
+  forward_to = [loki.write.default.receiver]
+}
+
+// Mintbot flat logs
+loki.source.file "mintbot_txt" {
+  targets = [
+    {
+      "__path__" = "/home/ubuntu/mintbot/logs/mint_*/*.txt",
+      job = "gem_monitor",
+      component = "stdout",
+    },
+  ]
+  forward_to = [loki.write.default.receiver]
+}
+
+// Mintbot nested logs
+loki.source.file "mintbot_nested_logs" {
+  targets = [
+    {
+      "__path__" = "/home/ubuntu/mintbot/logs/mint_*/**/*.log",
+      job = "gem_monitor",
+      component = "nested_logs",
+    },
+  ]
+  forward_to = [loki.write.default.receiver]
+}
