@@ -18,6 +18,6 @@ provider "opentelekomcloud" {
     user_name   = var.user_name
     password    = var.password #!= null ? var.password : lookup(var.env_vars, "OTC_PASSWORD", "")
     region      = var.region
-    access_key  = var.user_name
-    secret_key  = var.password
+    # access_key  = var.user_name
+    # secret_key  = var.password
 }
