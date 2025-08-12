@@ -1,91 +1,21 @@
-### Main TF file
-##  others are called were needed
+# data_inventory.tf
 
-
-# Configure the OpenStack Provider for Telekom Cloud
-
-
-
-
-# Get current region and project info
-data "opentelekomcloud_identity_project_v3" "current" {}
-
-# Simple approach - discover resources without complex for_each loops
-# VPC data source (single VPC query - you may need to specify filters)
-data "opentelekomcloud_vpc_v1" "default" {
-  # You can add filters here if needed
-  # name = "default"
-}
-
-# Subnet data source (single subnet query - you may need to specify VPC ID)
-data "opentelekomcloud_vpc_subnet_v1" "default" {
-  # vpc_id = data.opentelekomcloud_vpc_v1.default.id
-}
-
-# Compute instances data source  
+# ECS instances (list)
 data "opentelekomcloud_compute_instances_v2" "all" {}
 
-# Security Groups
-data "opentelekomcloud_networking_secgroup_v2" "all" {}
+# EVS volumes (list)
+data "opentelekomcloud_evs_volumes_v2" "all" {}
 
-# Available flavors
-data "opentelekomcloud_compute_flavor_v2" "all" {}
-
-# Available images
-data "opentelekomcloud_images_image_v2" "latest" {
-  most_recent = true
+# Subnets -> get IDs then hydrate details
+data "opentelekomcloud_vpc_subnet_ids_v1" "all" {}
+data "opentelekomcloud_vpc_subnet_v1" "subnet" {
+  for_each = toset(data.opentelekomcloud_vpc_subnet_ids_v1.all.ids)
+  id       = each.value
 }
 
-# Key pairs
-data "opentelekomcloud_compute_keypair_v2" "all" {}
-
-# RDS instances
-data "opentelekomcloud_rds_instance_v3" "all" {}
-
-# ELB load balancers
-data "opentelekomcloud_lb_loadbalancer_v3" "all" {}
-
-# CCE clusters
-data "opentelekomcloud_cce_clusters_v3" "all" {}
-
-# DNS zones
-data "opentelekomcloud_dns_zone_v2" "all" {}
-
-# Object Storage buckets
-# data "opentelekomcloud_obs_bucket" "all" {}
-
-# DCS Redis instances
-# data "opentelekomcloud_dcs_instances_v1" "all" {}
-
-# ECS instances data source (alternative to compute_instances)
-# data "opentelekomcloud_ddm_instance_v1" "all" {}
-
-# Networking data sources
-data "opentelekomcloud_networking_network_v2" "all" {}
-
-# VPC peering connections
-data "opentelekomcloud_vpc_peering_connection_v2" "all" {}
-
-# EIP data source
-data "opentelekomcloud_vpc_eip_v1" "all" {}
-
-# Local values for easier reference
-locals {
-  # Extract data from data sources safely
-  compute_instances = try(data.opentelekomcloud_compute_instances_v2.all.instances, [])
-  #ecs_instances     = try(data.opentelekomcloud_ecs_instances_v1.all.instances, [])
-  security_groups   = try(data.opentelekomcloud_networking_secgroup_v2.all.name, [])
-  rds_instances     = try(data.opentelekomcloud_rds_instance_v3.all.instances, [])
-  loadbalancers     = try(data.opentelekomcloud_lb_loadbalancer_v3.all.loadbalancers, [])
-  cce_clusters      = try(data.opentelekomcloud_cce_clusters_v3.all.clusters, [])
-  dns_zones         = try(data.opentelekomcloud_dns_zone_v2.all.zones, [])
-  obs_buckets       = try(data.opentelekomcloud_obs_bucket.all.buckets, [])
-  #dcs_instances     = try(data.opentelekomcloud_dcs_instances_v1.all.instances, [])
-  networks          = try(data.opentelekomcloud_networking_network_v2.all.networks, [])
-  peering_connections = try(data.opentelekomcloud_vpc_peering_connection_v2.all.peering_connections, [])
-  eips              = try(data.opentelekomcloud_vpc_eip_v1.all.eips, [])
-  
-  # Project information
-  project_id   = data.opentelekomcloud_identity_project_v3.current.id
-  project_name = data.opentelekomcloud_identity_project_v3.current.name
+# Ports -> get IDs then hydrate details
+data "opentelekomcloud_networking_port_ids_v2" "all" {}
+data "opentelekomcloud_networking_port_v2" "port" {
+  for_each = toset(data.opentelekomcloud_networking_port_ids_v2.all.ids)
+  port_id  = each.value
 }
