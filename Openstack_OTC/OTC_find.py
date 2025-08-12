@@ -4,7 +4,78 @@ import json
 
 conn = openstack.connect(cloud='otc')
 
+
+def get_account_context(conn):
+    # Pull from clouds.yaml/env via openstacksdk’s CloudRegion
+    auth = conn.config.get_auth_args()  # dict: auth_url, project_name, user_domain_name, etc.
+
+    auth_url     = auth.get("auth_url")
+    region_name  = conn.config.region_name
+    interface    = getattr(conn.config, "interface", None)
+
+    # Names from config (Keystone v3 uses "project", old v2 used "tenant")
+    project_name = auth.get("project_name") or auth.get("tenant_name")
+    domain_name  = (auth.get("user_domain_name")
+                    or auth.get("project_domain_name")
+                    or auth.get("domain_name"))
+
+    # Resolve IDs from names (ignore_missing=True keeps this resilient if names are absent)
+    project = conn.identity.find_project(project_name, ignore_missing=True) if project_name else None
+    domain  = conn.identity.find_domain(domain_name,   ignore_missing=True) if domain_name  else None
+
+    # Availability zones
+    try:
+        compute_az = [az.name for az in conn.compute.availability_zones()]
+    except Exception:
+        compute_az = []
+    try:
+        volume_az = [az.name for az in conn.block_storage.availability_zones()]
+    except Exception:
+        volume_az = []
+
+    # External networks (useful for TF variables)
+    try:
+        external_nets = [n.name for n in conn.network.networks(is_router_external=True)]
+    except Exception:
+        external_nets = []
+
+    # Service catalog summary (optional but nice to have)
+    services = []
+    try:
+        for svc in conn.identity.services():
+            eps = [
+                {"region": ep.region, "interface": ep.interface, "url": ep.url}
+                for ep in conn.identity.endpoints(service_id=svc.id)
+            ]
+            services.append({"type": svc.type, "name": svc.name, "endpoints": eps})
+    except Exception:
+        pass
+
+    return {
+        "cloud": conn.config.name,
+        "auth_url": auth_url,
+        "region_name": region_name,
+        "interface": interface,
+        "project": {
+            "name": project_name,
+            "id": getattr(project, "id", None),
+        },
+        "domain": {
+            "name": domain_name,
+            "id": getattr(domain, "id", None),
+        },
+        "availability_zones": {
+            "compute": compute_az,
+            "volume":  volume_az,
+        },
+        "external_networks": external_nets,
+        "service_catalog": services,
+    }
+
+
+
 result = {
+    "account": get_account_context(conn), 
     "servers": [],
     "networks": {
         "vpcs": [],

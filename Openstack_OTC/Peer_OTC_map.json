@@ -60,6 +60,14 @@
               "remote_ip_prefix": "0.0.0.0/0"
             },
             {
+              "direction": "ingress",
+              "ethertype": "IPv4",
+              "protocol": "icmp",
+              "port_range_min": null,
+              "port_range_max": null,
+              "remote_ip_prefix": "0.0.0.0/0"
+            },
+            {
               "direction": "egress",
               "ethertype": "IPv6",
               "protocol": null,
@@ -94,10 +102,10 @@
             {
               "direction": "ingress",
               "ethertype": "IPv4",
-              "protocol": "icmp",
-              "port_range_min": null,
-              "port_range_max": null,
-              "remote_ip_prefix": "0.0.0.0/0"
+              "protocol": "tcp",
+              "port_range_min": 3100,
+              "port_range_max": 3100,
+              "remote_ip_prefix": "172.16.0.0/16"
             },
             {
               "direction": "ingress",
@@ -114,123 +122,6 @@
               "port_range_min": 3100,
               "port_range_max": 3100,
               "remote_ip_prefix": "10.50.0.0/16"
-            }
-          ]
-        },
-        {
-          "name": "default",
-          "rules": [
-            {
-              "direction": "egress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 20,
-              "port_range_max": 21,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "egress",
-              "ethertype": "IPv4",
-              "protocol": "icmp",
-              "port_range_min": null,
-              "port_range_max": null,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "egress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 3389,
-              "port_range_max": 3389,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "egress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 23,
-              "port_range_max": 23,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "egress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 22,
-              "port_range_max": 22,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "ingress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 3389,
-              "port_range_max": 3389,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "ingress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 23,
-              "port_range_max": 23,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "ingress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 20,
-              "port_range_max": 21,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "ingress",
-              "ethertype": "IPv4",
-              "protocol": "icmp",
-              "port_range_min": null,
-              "port_range_max": null,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "ingress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 22,
-              "port_range_max": 22,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "egress",
-              "ethertype": "IPv4",
-              "protocol": null,
-              "port_range_min": null,
-              "port_range_max": null,
-              "remote_ip_prefix": null
-            },
-            {
-              "direction": "ingress",
-              "ethertype": "IPv4",
-              "protocol": null,
-              "port_range_min": null,
-              "port_range_max": null,
-              "remote_ip_prefix": null
-            },
-            {
-              "direction": "egress",
-              "ethertype": "IPv6",
-              "protocol": null,
-              "port_range_min": null,
-              "port_range_max": null,
-              "remote_ip_prefix": null
-            },
-            {
-              "direction": "ingress",
-              "ethertype": "IPv6",
-              "protocol": null,
-              "port_range_min": null,
-              "port_range_max": null,
-              "remote_ip_prefix": null
             }
           ]
         }
@@ -516,43 +407,67 @@
           "name": "sg-admin-testing",
           "rules": [
             {
-              "direction": "ingress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 22,
-              "port_range_max": 22,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "ingress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 22,
-              "port_range_max": 22,
-              "remote_ip_prefix": null
-            },
-            {
               "direction": "egress",
               "ethertype": "IPv4",
-              "protocol": null,
+              "protocol": "tcp",
+              "port_range_min": 3100,
+              "port_range_max": 3100,
+              "remote_ip_prefix": "10.50.0.0/16"
+            },
+            {
+              "direction": "ingress",
+              "ethertype": "IPv4",
+              "protocol": "tcp",
+              "port_range_min": 3389,
+              "port_range_max": 3389,
+              "remote_ip_prefix": "0.0.0.0/0"
+            },
+            {
+              "direction": "ingress",
+              "ethertype": "IPv4",
+              "protocol": "tcp",
+              "port_range_min": 443,
+              "port_range_max": 443,
+              "remote_ip_prefix": "0.0.0.0/0"
+            },
+            {
+              "direction": "ingress",
+              "ethertype": "IPv4",
+              "protocol": "tcp",
+              "port_range_min": 20,
+              "port_range_max": 21,
+              "remote_ip_prefix": "0.0.0.0/0"
+            },
+            {
+              "direction": "ingress",
+              "ethertype": "IPv4",
+              "protocol": "tcp",
+              "port_range_min": 80,
+              "port_range_max": 80,
+              "remote_ip_prefix": "0.0.0.0/0"
+            },
+            {
+              "direction": "ingress",
+              "ethertype": "IPv4",
+              "protocol": "icmp",
               "port_range_min": null,
               "port_range_max": null,
               "remote_ip_prefix": "0.0.0.0/0"
             },
             {
               "direction": "ingress",
-              "ethertype": "IPv6",
-              "protocol": null,
-              "port_range_min": null,
-              "port_range_max": null,
-              "remote_ip_prefix": null
+              "ethertype": "IPv4",
+              "protocol": "tcp",
+              "port_range_min": 22,
+              "port_range_max": 22,
+              "remote_ip_prefix": "0.0.0.0/0"
             },
             {
               "direction": "ingress",
               "ethertype": "IPv4",
-              "protocol": null,
-              "port_range_min": null,
-              "port_range_max": null,
+              "protocol": "tcp",
+              "port_range_min": 22,
+              "port_range_max": 22,
               "remote_ip_prefix": null
             },
             {
@@ -562,115 +477,6 @@
               "port_range_min": null,
               "port_range_max": null,
               "remote_ip_prefix": "::/0"
-            }
-          ]
-        },
-        {
-          "name": "default",
-          "rules": [
-            {
-              "direction": "egress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 20,
-              "port_range_max": 21,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "egress",
-              "ethertype": "IPv4",
-              "protocol": "icmp",
-              "port_range_min": null,
-              "port_range_max": null,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "egress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 3389,
-              "port_range_max": 3389,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "egress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 23,
-              "port_range_max": 23,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "egress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 22,
-              "port_range_max": 22,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "ingress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 3389,
-              "port_range_max": 3389,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "ingress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 23,
-              "port_range_max": 23,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "ingress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 20,
-              "port_range_max": 21,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "ingress",
-              "ethertype": "IPv4",
-              "protocol": "icmp",
-              "port_range_min": null,
-              "port_range_max": null,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "ingress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 22,
-              "port_range_max": 22,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "egress",
-              "ethertype": "IPv4",
-              "protocol": null,
-              "port_range_min": null,
-              "port_range_max": null,
-              "remote_ip_prefix": null
-            },
-            {
-              "direction": "ingress",
-              "ethertype": "IPv4",
-              "protocol": null,
-              "port_range_min": null,
-              "port_range_max": null,
-              "remote_ip_prefix": null
-            },
-            {
-              "direction": "egress",
-              "ethertype": "IPv6",
-              "protocol": null,
-              "port_range_min": null,
-              "port_range_max": null,
-              "remote_ip_prefix": null
             },
             {
               "direction": "ingress",
@@ -679,6 +485,22 @@
               "port_range_min": null,
               "port_range_max": null,
               "remote_ip_prefix": null
+            },
+            {
+              "direction": "ingress",
+              "ethertype": "IPv4",
+              "protocol": null,
+              "port_range_min": null,
+              "port_range_max": null,
+              "remote_ip_prefix": null
+            },
+            {
+              "direction": "egress",
+              "ethertype": "IPv4",
+              "protocol": null,
+              "port_range_min": null,
+              "port_range_max": null,
+              "remote_ip_prefix": "0.0.0.0/0"
             }
           ]
         }
@@ -1225,43 +1047,67 @@
           "name": "sg-admin-testing",
           "rules": [
             {
-              "direction": "ingress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 22,
-              "port_range_max": 22,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "ingress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 22,
-              "port_range_max": 22,
-              "remote_ip_prefix": null
-            },
-            {
               "direction": "egress",
               "ethertype": "IPv4",
-              "protocol": null,
+              "protocol": "tcp",
+              "port_range_min": 3100,
+              "port_range_max": 3100,
+              "remote_ip_prefix": "10.50.0.0/16"
+            },
+            {
+              "direction": "ingress",
+              "ethertype": "IPv4",
+              "protocol": "tcp",
+              "port_range_min": 3389,
+              "port_range_max": 3389,
+              "remote_ip_prefix": "0.0.0.0/0"
+            },
+            {
+              "direction": "ingress",
+              "ethertype": "IPv4",
+              "protocol": "tcp",
+              "port_range_min": 443,
+              "port_range_max": 443,
+              "remote_ip_prefix": "0.0.0.0/0"
+            },
+            {
+              "direction": "ingress",
+              "ethertype": "IPv4",
+              "protocol": "tcp",
+              "port_range_min": 20,
+              "port_range_max": 21,
+              "remote_ip_prefix": "0.0.0.0/0"
+            },
+            {
+              "direction": "ingress",
+              "ethertype": "IPv4",
+              "protocol": "tcp",
+              "port_range_min": 80,
+              "port_range_max": 80,
+              "remote_ip_prefix": "0.0.0.0/0"
+            },
+            {
+              "direction": "ingress",
+              "ethertype": "IPv4",
+              "protocol": "icmp",
               "port_range_min": null,
               "port_range_max": null,
               "remote_ip_prefix": "0.0.0.0/0"
             },
             {
               "direction": "ingress",
-              "ethertype": "IPv6",
-              "protocol": null,
-              "port_range_min": null,
-              "port_range_max": null,
-              "remote_ip_prefix": null
+              "ethertype": "IPv4",
+              "protocol": "tcp",
+              "port_range_min": 22,
+              "port_range_max": 22,
+              "remote_ip_prefix": "0.0.0.0/0"
             },
             {
               "direction": "ingress",
               "ethertype": "IPv4",
-              "protocol": null,
-              "port_range_min": null,
-              "port_range_max": null,
+              "protocol": "tcp",
+              "port_range_min": 22,
+              "port_range_max": 22,
               "remote_ip_prefix": null
             },
             {
@@ -1271,6 +1117,30 @@
               "port_range_min": null,
               "port_range_max": null,
               "remote_ip_prefix": "::/0"
+            },
+            {
+              "direction": "ingress",
+              "ethertype": "IPv6",
+              "protocol": null,
+              "port_range_min": null,
+              "port_range_max": null,
+              "remote_ip_prefix": null
+            },
+            {
+              "direction": "ingress",
+              "ethertype": "IPv4",
+              "protocol": null,
+              "port_range_min": null,
+              "port_range_max": null,
+              "remote_ip_prefix": null
+            },
+            {
+              "direction": "egress",
+              "ethertype": "IPv4",
+              "protocol": null,
+              "port_range_min": null,
+              "port_range_max": null,
+              "remote_ip_prefix": "0.0.0.0/0"
             }
           ]
         },
@@ -1278,43 +1148,67 @@
           "name": "sg-admin-testing",
           "rules": [
             {
-              "direction": "ingress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 22,
-              "port_range_max": 22,
-              "remote_ip_prefix": "0.0.0.0/0"
-            },
-            {
-              "direction": "ingress",
-              "ethertype": "IPv4",
-              "protocol": "tcp",
-              "port_range_min": 22,
-              "port_range_max": 22,
-              "remote_ip_prefix": null
-            },
-            {
               "direction": "egress",
               "ethertype": "IPv4",
-              "protocol": null,
+              "protocol": "tcp",
+              "port_range_min": 3100,
+              "port_range_max": 3100,
+              "remote_ip_prefix": "10.50.0.0/16"
+            },
+            {
+              "direction": "ingress",
+              "ethertype": "IPv4",
+              "protocol": "tcp",
+              "port_range_min": 3389,
+              "port_range_max": 3389,
+              "remote_ip_prefix": "0.0.0.0/0"
+            },
+            {
+              "direction": "ingress",
+              "ethertype": "IPv4",
+              "protocol": "tcp",
+              "port_range_min": 443,
+              "port_range_max": 443,
+              "remote_ip_prefix": "0.0.0.0/0"
+            },
+            {
+              "direction": "ingress",
+              "ethertype": "IPv4",
+              "protocol": "tcp",
+              "port_range_min": 20,
+              "port_range_max": 21,
+              "remote_ip_prefix": "0.0.0.0/0"
+            },
+            {
+              "direction": "ingress",
+              "ethertype": "IPv4",
+              "protocol": "tcp",
+              "port_range_min": 80,
+              "port_range_max": 80,
+              "remote_ip_prefix": "0.0.0.0/0"
+            },
+            {
+              "direction": "ingress",
+              "ethertype": "IPv4",
+              "protocol": "icmp",
               "port_range_min": null,
               "port_range_max": null,
               "remote_ip_prefix": "0.0.0.0/0"
             },
             {
               "direction": "ingress",
-              "ethertype": "IPv6",
-              "protocol": null,
-              "port_range_min": null,
-              "port_range_max": null,
-              "remote_ip_prefix": null
+              "ethertype": "IPv4",
+              "protocol": "tcp",
+              "port_range_min": 22,
+              "port_range_max": 22,
+              "remote_ip_prefix": "0.0.0.0/0"
             },
             {
               "direction": "ingress",
               "ethertype": "IPv4",
-              "protocol": null,
-              "port_range_min": null,
-              "port_range_max": null,
+              "protocol": "tcp",
+              "port_range_min": 22,
+              "port_range_max": 22,
               "remote_ip_prefix": null
             },
             {
@@ -1324,6 +1218,30 @@
               "port_range_min": null,
               "port_range_max": null,
               "remote_ip_prefix": "::/0"
+            },
+            {
+              "direction": "ingress",
+              "ethertype": "IPv6",
+              "protocol": null,
+              "port_range_min": null,
+              "port_range_max": null,
+              "remote_ip_prefix": null
+            },
+            {
+              "direction": "ingress",
+              "ethertype": "IPv4",
+              "protocol": null,
+              "port_range_min": null,
+              "port_range_max": null,
+              "remote_ip_prefix": null
+            },
+            {
+              "direction": "egress",
+              "ethertype": "IPv4",
+              "protocol": null,
+              "port_range_min": null,
+              "port_range_max": null,
+              "remote_ip_prefix": "0.0.0.0/0"
             }
           ]
         }
