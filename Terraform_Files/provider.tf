@@ -7,10 +7,10 @@ terraform {
       source  = "opentelekomcloud/opentelekomcloud"
       version = "~> 1.36"
     }
-        local = {
-      source  = "hashicorp/local"
-      version = "~> 2.5"
-    }
+#      local = {
+#      source  = "hashicorp/local"
+#      version = "~> 2.5"
+#    }
   }
 }
 

@@ -1,4 +1,4 @@
-# outputs.tf
+# locals.tf (same dir as export.tf)
 
 locals {
   ecs_raw     = data.opentelekomcloud_compute_instances_v2.all.instances
@@ -6,7 +6,6 @@ locals {
   subnets_raw = [for s in values(data.opentelekomcloud_vpc_subnet_v1.subnet) : s]
   ports_raw   = [for p in values(data.opentelekomcloud_networking_port_v2.port) : p]
 
-  # (Optional) slim down fields for readability
   ecs = [
     for s in local.ecs_raw : {
       id        = s.id
@@ -59,9 +58,4 @@ locals {
     subnets      = local.subnets
     ports        = local.ports
   }
-}
-
-output "inventory_yaml" {
-  value     = yamlencode(local.payload)
-  sensitive = false 
 }
