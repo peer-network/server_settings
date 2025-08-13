@@ -7,8 +7,14 @@ terraform {
       source  = "opentelekomcloud/opentelekomcloud"
       version = "~> 1.36"
     }
+        local = {
+      source  = "hashicorp/local"
+      version = "~> 2.5"
+    }
   }
 }
+
+
 
 provider "opentelekomcloud" {
   access_key  = var.access_key_id
