@@ -35,6 +35,19 @@ variable "password" {
   sensitive   = true
 }
 
+variable "access_key_id" {
+  description = "Key ID for Terraform"
+  type        = string
+  sensitive   = true
+}
+
+variable "secret_access_key" {
+  description = "the secret_access_key for terraform"
+  type        = string
+  sensitive   = true
+}
+
+
 # Environment-specific variables
 variable "environment" {
   description = "Environment name (dev, staging, prod)"
