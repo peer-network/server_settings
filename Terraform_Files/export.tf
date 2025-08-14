@@ -63,9 +63,9 @@ locals {
   }
 
   # CCE clusters (top-level)
-  cce = {
-    clusters = try(data.opentelekomcloud_cce_cluster_v3.clusters.clusters, [])
-  }
+  # cce = {
+  #   clusters = try(data.opentelekomcloud_cce_cluster_v3.clusters.clusters, [])
+  # }
 
   # Final payload as requested
   peer_network = {
@@ -89,7 +89,7 @@ locals {
       nats           = local.nats
       load_balancers = local.elbs
       backups        = local.cbr
-      cce            = local.cce
+      #cce            = local.cce
     }
   }
 }
