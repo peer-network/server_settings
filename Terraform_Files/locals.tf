@@ -26,6 +26,7 @@ locals {
     }
   }
 
+
   # Ports keyed by ID, plus reverse indexes
   ports = {
     for p in data.opentelekomcloud_networking_port_v2.by_id :
