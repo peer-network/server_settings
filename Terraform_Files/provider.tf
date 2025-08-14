@@ -7,10 +7,7 @@ terraform {
       source  = "opentelekomcloud/opentelekomcloud"
       version = "~> 1.36"
     }
-#      local = {
-#      source  = "hashicorp/local"
-#      version = "~> 2.5"
-#    }
+    # Insert local here
   }
 }
 
@@ -24,3 +21,8 @@ provider "opentelekomcloud" {
   tenant_name = var.tenant_name
   auth_url    = "https://iam.eu-de.otc.t-systems.com/v3"
 }
+
+#      local = {
+#      source  = "hashicorp/local"
+#      version = "~> 2.5"
+#    }

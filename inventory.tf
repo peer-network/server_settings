@@ -56,14 +56,6 @@ data "opentelekomcloud_nat_dnat_rules_v2" "dnat" {
   gateway_id = each.key
 }
 
-# --- ELB Load Balancers
-data "opentelekomcloud_rms_advanced_query_v1" "elbs" {
-  expression = <<-SQL
-    SELECT id, name
-    FROM resources
-    WHERE provider='elb' AND type='loadbalancers'
-  SQL
-}
 data "opentelekomcloud_lb_loadbalancer_v3" "lb" {
   for_each = { for r in data.opentelekomcloud_rms_advanced_query_v1.elbs.results : r.id => r }
   id       = each.key
@@ -89,44 +81,6 @@ data "opentelekomcloud_rms_advanced_query_v1" "cbr_backups" {
 data "opentelekomcloud_cce_cluster_v3" "clusters" {}
 
 
-
-# VPC list
-data "opentelekomcloud_rms_advanced_query_v1" "vpcs" {
-  expression = <<-SQL
-    SELECT id, name
-    FROM resources
-    WHERE provider='vpc' AND type='vpcs'
-  SQL
-}
-
-# EIPs (Elastic IPs)
-data "opentelekomcloud_rms_advanced_query_v1" "eips" {
-  expression = <<-SQL
-    SELECT id, name, properties.public_ip_address, properties.port_id
-    FROM resources
-    WHERE provider='vpc' AND type='publicips'
-  SQL
-}
-
-# NAT gateways
-data "opentelekomcloud_rms_advanced_query_v1" "nats" {
-  expression = <<-SQL
-    SELECT id, name, properties.router_id, properties.internal_network_id
-    FROM resources
-    WHERE provider='nat' AND type='gateways'
-  SQL
-}
-
-# NAT rules (by gateway)
-data "opentelekomcloud_nat_snat_rules_v2" "snat" {
-  for_each    = { for r in data.opentelekomcloud_rms_advanced_query_v1.nats.results : r.id => r }
-  gateway_id  = each.key
-}
-data "opentelekomcloud_nat_dnat_rules_v2" "dnat" {
-  for_each    = { for r in data.opentelekomcloud_rms_advanced_query_v1.nats.results : r.id => r }
-  gateway_id  = each.key
-}
-
 # Dedicated ELB load balancers (list via RMS, then hydrate each)
 data "opentelekomcloud_rms_advanced_query_v1" "elbs" {
   expression = <<-SQL
@@ -135,29 +89,6 @@ data "opentelekomcloud_rms_advanced_query_v1" "elbs" {
     WHERE provider='elb' AND type='loadbalancers'
   SQL
 }
-data "opentelekomcloud_lb_loadbalancer_v3" "lb" {
-  for_each = { for r in data.opentelekomcloud_rms_advanced_query_v1.elbs.results : r.id => r }
-  id       = each.key
-}
-
-# CBR vaults and backups
-data "opentelekomcloud_rms_advanced_query_v1" "cbr_vaults" {
-  expression = <<-SQL
-    SELECT id, name, properties.size, properties.used
-    FROM resources
-    WHERE provider='cbr' AND type='vaults'
-  SQL
-}
-data "opentelekomcloud_rms_advanced_query_v1" "cbr_backups" {
-  expression = <<-SQL
-    SELECT id, name, properties.resource_id, properties.size, properties.status
-    FROM resources
-    WHERE provider='cbr' AND type='backups'
-  SQL
-}
-
-# CCE clusters (top-level container infra; pods require k8s provider)
-data "opentelekomcloud_cce_cluster_v3" "clusters" {}
 
 # Subnet IDs for each VPC
 data "opentelekomcloud_vpc_subnet_ids_v1" "by_vpc" {
