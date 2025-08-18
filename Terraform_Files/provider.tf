@@ -15,14 +15,14 @@ terraform {
 }
 
 provider "opentelekomcloud" {
-  auth_url            = "https://iam.eu-de.otc.t-systems.com/v3"
-  region              = var.region
+  auth_url = "https://iam.eu-de.otc.t-systems.com/v3"
+  region   = var.region
 
-  access_key          = var.access_key_id
-  secret_key          = var.secret_access_key
+  access_key = var.access_key_id
+  secret_key = var.secret_access_key
 
   # Scoping
   user_domain_name    = var.domain_name
   project_domain_name = var.domain_name
-  tenant_id           = var.tenant_id     # prefer ID; or use tenant_name instead
+  tenant_id           = var.tenant_id # prefer ID; or use tenant_name instead
 }

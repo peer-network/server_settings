@@ -47,7 +47,7 @@ locals {
 
   # EIPs keyed by portId (guarded RMS)
   eips_results = (length(data.opentelekomcloud_rms_advanced_query_v1.eips) > 0
-    ? data.opentelekomcloud_rms_advanced_query_v1.eips[0].results : [])
+  ? data.opentelekomcloud_rms_advanced_query_v1.eips[0].results : [])
   eip_by_port = {
     for r in local.eips_results :
     try(r.properties.portId, null) => {
@@ -116,7 +116,7 @@ locals {
 
   # NATs with rules (guarded)
   nats_results = (length(data.opentelekomcloud_rms_advanced_query_v1.nats) > 0
-    ? data.opentelekomcloud_rms_advanced_query_v1.nats[0].results : [])
+  ? data.opentelekomcloud_rms_advanced_query_v1.nats[0].results : [])
   nats = [
     for n in local.nats_results : {
       id   = n.id
@@ -125,6 +125,12 @@ locals {
       dnat = try(data.opentelekomcloud_nat_dnat_rules_v2.dnat[n.id].rules, [])
     }
   ]
+
+  elb_map = (
+    var.enable_rms && length(data.opentelekomcloud_rms_advanced_query_v1.elbs) > 0
+    ? { for r in data.opentelekomcloud_rms_advanced_query_v1.elbs[0].results : r.id => r }
+    : {}
+  )
 
   # ELBs (guarded)
   elbs = [
@@ -140,11 +146,11 @@ locals {
 
   # CBR (guarded)
   cbr_vaults = (length(data.opentelekomcloud_rms_advanced_query_v1.cbr_vaults) > 0
-    ? data.opentelekomcloud_rms_advanced_query_v1.cbr_vaults[0].results : [])
+  ? data.opentelekomcloud_rms_advanced_query_v1.cbr_vaults[0].results : [])
   cbr_backups = (length(data.opentelekomcloud_rms_advanced_query_v1.cbr_backups) > 0
-    ? data.opentelekomcloud_rms_advanced_query_v1.cbr_backups[0].results : [])
+  ? data.opentelekomcloud_rms_advanced_query_v1.cbr_backups[0].results : [])
   backups = {
-    vaults  = [for v in local.cbr_vaults  : { id = v.id, name = v.name }]
+    vaults  = [for v in local.cbr_vaults : { id = v.id, name = v.name }]
     backups = [for b in local.cbr_backups : { id = b.id, name = b.name, resource_id = try(b.properties.resource_id, null), status = try(b.properties.status, null) }]
   }
 
@@ -153,15 +159,15 @@ locals {
     Peer_Network = {
       vpcs = [
         for vpc_id, v in local.vpcs : {
-          id      = v.id
-          label   = v.name
+          id    = v.id
+          label = v.name
           subnets = [
             for s in lookup(local.subnets_by_vpc, vpc_id, []) : {
-              id        = s.id
-              label     = s.name
-              cidr      = s.cidr
-              vms       = lookup(local.vms_by_subnet, s.id, [])
-              containers = []   # fill via k8s provider if desired
+              id         = s.id
+              label      = s.name
+              cidr       = s.cidr
+              vms        = lookup(local.vms_by_subnet, s.id, [])
+              containers = [] # fill via k8s provider if desired
             }
           ]
         }

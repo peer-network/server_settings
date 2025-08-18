@@ -53,11 +53,10 @@ data "opentelekomcloud_rms_advanced_query_v1" "elbs" {
     WHERE provider='elb' AND type='loadbalancers'
   SQL
 }
+
 data "opentelekomcloud_lb_loadbalancer_v3" "lb" {
-  for_each = var.enable_rms && length(data.opentelekomcloud_rms_advanced_query_v1.elbs) > 0
-    ? { for r in data.opentelekomcloud_rms_advanced_query_v1.elbs[0].results : r.id => r }
-    : {}
-  id = each.key
+  for_each = local.elb_map
+  id       = each.key
 }
 
 # CBR vaults/backups (keep fields minimal to avoid schema surprises)

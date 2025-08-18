@@ -1,14 +1,42 @@
 # variables.tf
 
+variable "region" {
+  type = string
+}
 
-variable "region"            { type = string }
-variable "domain_name"       { type = string }  # account/domain name
-variable "tenant_id"         { type = string }  # project ID (GUID)
-variable "access_key_id"     { type = string; sensitive = true }
-variable "secret_access_key" { type = string; sensitive = true }
+variable "domain_name" {
+  type = string
+}
+
+variable "tenant_id" {
+  type = string
+}
+
+variable "access_key_id" {
+  type      = string
+  sensitive = true
+}
+
+variable "secret_access_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "enable_rms" {
+  type    = bool
+  default = true
+}
+
+variable "vpc_ids" {
+  type    = list(string)
+  default = []
+}
+
 
 # Guard RMS so plans don’t fail if recorder isn’t ready
-variable "enable_rms" { type = bool, default = true }
+variable "enable_rms" { 
+  type = bool, default = true 
+}
 
 # Fallback if RMS is off: allow manual VPC IDs for subnet discovery
 variable "vpc_ids" {
