@@ -7,22 +7,22 @@ terraform {
       source  = "opentelekomcloud/opentelekomcloud"
       version = "~> 1.36"
     }
-    # Insert local here
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.5"
+    }
   }
 }
 
 provider "opentelekomcloud" {
-  access_key  = var.access_key_id
-  secret_key  = var.secret_access_key
-  region      = var.region 
+  auth_url            = "https://iam.eu-de.otc.t-systems.com/v3"
+  region              = var.region
+
+  access_key          = var.access_key_id
+  secret_key          = var.secret_access_key
 
   # Scoping
-  domain_name = var.domain_name
-  tenant_name = var.tenant_name
-  auth_url    = "https://iam.eu-de.otc.t-systems.com/v3"
+  user_domain_name    = var.domain_name
+  project_domain_name = var.domain_name
+  tenant_id           = var.tenant_id     # prefer ID; or use tenant_name instead
 }
-
-#      local = {
-#      source  = "hashicorp/local"
-#      version = "~> 2.5"
-#    }
