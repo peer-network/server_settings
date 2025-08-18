@@ -1,20 +1,30 @@
 locals {
-  # Basic maps
-  vpcs = {
-    for r in data.opentelekomcloud_rms_advanced_query_v1.vpcs.results :
-    r.id => { id = r.id, name = try(r.name, r.properties.name, null) }
-  }
-
+  # Subnets: data.opentelekomcloud_vpc_subnet_v1.subnet is a map (from for_each)
   subnets = {
-    for s in data.opentelekomcloud_vpc_subnet_v1.subnet :
-    s.value.id => {
-      id     = s.value.id
-      name   = s.value.name
-      cidr   = s.value.cidr
-      vpc_id = s.value.vpc_id
+    for s in values(data.opentelekomcloud_vpc_subnet_v1.subnet) :
+    s.id => {
+      id     = s.id
+      name   = s.name
+      cidr   = s.cidr
+      vpc_id = s.vpc_id
     }
   }
 
+  # Ports: data.opentelekomcloud_networking_port_v2.by_id is also a map
+  ports = {
+    for p in values(data.opentelekomcloud_networking_port_v2.by_id) :
+    p.id => {
+      id           = p.id
+      name         = p.name
+      device_id    = p.device_id
+      device_owner = p.device_owner
+      network_id   = p.network_id
+      fixed_ips    = p.all_fixed_ips
+      sg_ids       = try(p.all_security_group_ids, [])
+    }
+  }
+
+  # Instances (this one was already fine: it's a list, not a map)
   instances = {
     for i in data.opentelekomcloud_compute_instances_v2.all.instances :
     i.id => {
@@ -23,21 +33,6 @@ locals {
       status = i.status
       az     = i.availability_zone
       sgs    = try(i.security_groups_ids, [])
-    }
-  }
-
-
-  # Ports keyed by ID, plus reverse indexes
-  ports = {
-    for p in data.opentelekomcloud_networking_port_v2.by_id :
-    p.value.id => {
-      id            = p.value.id
-      name          = p.value.name
-      device_id     = p.value.device_id
-      device_owner  = p.value.device_owner
-      network_id    = p.value.network_id
-      fixed_ips     = p.value.all_fixed_ips  # [{ip_address, subnet_id}]
-      sg_ids        = try(p.value.all_security_group_ids, [])
     }
   }
 
