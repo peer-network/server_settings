@@ -31,20 +31,22 @@ data "opentelekomcloud_rms_advanced_query_v1" "vpcs" {
 # --- EIPs
 data "opentelekomcloud_rms_advanced_query_v1" "eips" {
   expression = <<-SQL
-    SELECT id, name, properties.public_ip_address, properties.port_id
+    SELECT id, name, properties.publicIpAddress
     FROM resources
     WHERE provider='vpc' AND type='publicips'
   SQL
 }
 
 # --- NAT Gateways
+# Add to select if needed:  , properties.router_id, properties.internal_network_id
 data "opentelekomcloud_rms_advanced_query_v1" "nats" {
   expression = <<-SQL
-    SELECT id, name, properties.router_id, properties.internal_network_id
+    SELECT id, name
     FROM resources
     WHERE provider='nat' AND type='gateways'
   SQL
 }
+
 
 # NAT rules per gateway (hydrate)
 data "opentelekomcloud_nat_snat_rules_v2" "snat" {
@@ -62,13 +64,15 @@ data "opentelekomcloud_lb_loadbalancer_v3" "lb" {
 }
 
 # --- CBR Vaults & Backups
+#  , properties.size, properties.used
 data "opentelekomcloud_rms_advanced_query_v1" "cbr_vaults" {
   expression = <<-SQL
-    SELECT id, name, properties.size, properties.used
+    SELECT id, name
     FROM resources
     WHERE provider='cbr' AND type='vaults'
   SQL
 }
+
 data "opentelekomcloud_rms_advanced_query_v1" "cbr_backups" {
   expression = <<-SQL
     SELECT id, name, properties.resource_id, properties.size, properties.status
@@ -78,7 +82,7 @@ data "opentelekomcloud_rms_advanced_query_v1" "cbr_backups" {
 }
 
 # --- (Optional) CCE clusters (top-level container infra)
-data "opentelekomcloud_cce_cluster_v3" "clusters" {}
+# data "opentelekomcloud_cce_cluster_v3" "clusters" {}
 
 
 # Dedicated ELB load balancers (list via RMS, then hydrate each)

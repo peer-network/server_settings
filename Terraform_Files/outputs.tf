@@ -4,9 +4,33 @@ locals {
   ecs_raw     = data.opentelekomcloud_compute_instances_v2.all.instances
   evs_raw     = data.opentelekomcloud_evs_volumes_v2.all.volumes
   subnets_raw = [for s in values(data.opentelekomcloud_vpc_subnet_v1.subnet) : s]
-  ports_raw   = [for p in values(data.opentelekomcloud_networking_port_v2.port) : p]
 
-  # (Optional) slim down fields for readability
+  # Iterate the by_id map and build a clean list of port objects
+  ports_raw = [
+    for _, p in data.opentelekomcloud_networking_port_v2.by_id : {
+      id           = p.id
+      name         = p.name
+      device_id    = p.device_id
+      device_owner = p.device_owner
+      network_id   = p.network_id
+      fixed_ips    = p.all_fixed_ips
+      sg_ids       = try(p.all_security_group_ids, [])
+    }
+  ]
+
+  # (Optional) if you want a second “slimmed” list, you can just reuse ports_raw
+  ports_out = local.ports_raw
+
+  # Subnets slimmed
+  subnets_out = [
+    for s in local.subnets_raw : {
+      id     = s.id
+      name   = s.name
+      cidr   = s.cidr
+      vpc_id = s.vpc_id
+    }
+  ]
+
   ecs = [
     for s in local.ecs_raw : {
       id        = s.id
@@ -31,37 +55,17 @@ locals {
     }
   ]
 
-  subnets = [
-    for s in local.subnets_raw : {
-      id     = s.id
-      name   = s.name
-      cidr   = s.cidr
-      vpc_id = s.vpc_id
-    }
-  ]
-
-  ports = [
-    for p in local.ports_raw : {
-      id           = p.id
-      name         = p.name
-      device_id    = p.device_id
-      device_owner = p.device_owner
-      network_id   = p.network_id
-      fixed_ips    = p.all_fixed_ips
-    }
-  ]
-
   payload = {
     generated_at = timestamp()
     region       = var.region
     ecs          = local.ecs
     evs          = local.evs
-    subnets      = local.subnets
-    ports        = local.ports
+    subnets      = local.subnets_out
+    ports        = local.ports_out
   }
 }
 
 output "inventory_yaml" {
   value     = yamlencode(local.payload)
-  sensitive = false 
+  sensitive = false
 }
