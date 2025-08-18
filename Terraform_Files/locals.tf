@@ -1,13 +1,21 @@
+# Build a VPC map from the RMS query
 locals {
-  # Subnets: data.opentelekomcloud_vpc_subnet_v1.subnet is a map (from for_each)
-  subnets = {
-    for s in values(data.opentelekomcloud_vpc_subnet_v1.subnet) :
-    s.id => {
-      id     = s.id
-      name   = s.name
-      cidr   = s.cidr
-      vpc_id = s.vpc_id
+  vpcs = {
+    for r in data.opentelekomcloud_rms_advanced_query_v1.vpcs.results :
+    r.id => {
+      id    = r.id
+      name  = try(r.name, try(r.properties.name, null), null)
     }
+  }
+
+  # You already defined `subnets` as a map keyed by subnet ID.
+  # Group those subnets under each VPC for export.
+  subnets_by_vpc = {
+    for vpc_id in keys(local.vpcs) :
+    vpc_id => [
+      for s in values(local.subnets) : s
+      if s.vpc_id == vpc_id
+    ]
   }
 
   # Ports: data.opentelekomcloud_networking_port_v2.by_id is also a map
