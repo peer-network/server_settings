@@ -1,7 +1,9 @@
 ############################################
 # INVENTORY: OTC direct + RMS (guarded)
-# - Variables expected (define in variables.tf):
-#   enable_rms (bool), vpc_ids (list(string)), port_sample_size (number)
+# Requires variables you said you'll add:
+#   - enable_rms (bool)
+#   - vpc_ids (list(string))           # fallback when RMS off
+#   - port_sample_size (number)        # e.g., 500
 ############################################
 
 ############################
@@ -14,17 +16,10 @@ data "opentelekomcloud_compute_instances_v2" "all" {}
 # All EVS volumes
 data "opentelekomcloud_evs_volumes_v2" "all" {}
 
-# Ports: get IDs, then hydrate a bounded set to avoid API/provider overload
+# Ports: list IDs (locals.tf will pick a bounded slice for for_each below)
 data "opentelekomcloud_networking_port_ids_v2" "all" {}
 
-# Limit per run via var.port_sample_size (raise gradually if you have lots)
-locals {
-  all_port_ids       = data.opentelekomcloud_networking_port_ids_v2.all.ids
-  port_ids_effective = length(local.all_port_ids) > var.port_sample_size
-    ? slice(local.all_port_ids, 0, var.port_sample_size)
-    : local.all_port_ids
-}
-
+# Hydrate a bounded set of ports by ID (uses local.port_ids_effective from locals.tf)
 data "opentelekomcloud_networking_port_v2" "by_id" {
   for_each = toset(local.port_ids_effective)
   port_id  = each.value
@@ -37,7 +32,7 @@ data "opentelekomcloud_networking_port_v2" "by_id" {
 
 # VPCs (id, name)
 data "opentelekomcloud_rms_advanced_query_v1" "vpcs" {
-  count = var.enable_rms ? 1 : 0
+  count      = var.enable_rms ? 1 : 0
   expression = <<-SQL
     SELECT id, name
     FROM resources
@@ -45,9 +40,9 @@ data "opentelekomcloud_rms_advanced_query_v1" "vpcs" {
   SQL
 }
 
-# ELBs (id, name) -> then hydrate details below
+# ELBs (id, name)
 data "opentelekomcloud_rms_advanced_query_v1" "elbs" {
-  count = var.enable_rms ? 1 : 0
+  count      = var.enable_rms ? 1 : 0
   expression = <<-SQL
     SELECT id, name
     FROM resources
@@ -55,9 +50,9 @@ data "opentelekomcloud_rms_advanced_query_v1" "elbs" {
   SQL
 }
 
-# NAT Gateways (id, name) -> then hydrate rules below
+# NAT Gateways (id, name)
 data "opentelekomcloud_rms_advanced_query_v1" "nats" {
-  count = var.enable_rms ? 1 : 0
+  count      = var.enable_rms ? 1 : 0
   expression = <<-SQL
     SELECT id, name
     FROM resources
@@ -66,8 +61,7 @@ data "opentelekomcloud_rms_advanced_query_v1" "nats" {
 }
 
 #############################################
-# Subnets per VPC
-# Uses local.vpc_ids_effective from locals.tf
+# Subnets per VPC (uses local.vpc_ids_effective)
 #############################################
 
 data "opentelekomcloud_vpc_subnet_ids_v1" "by_vpc" {

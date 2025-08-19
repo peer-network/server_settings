@@ -22,10 +22,10 @@ variable "secret_access_key" {
   sensitive = true
 }
 
-variable "port_sample_size"  {
-   type = number, 
-   default = 500 
-}  # keep Neutron sane while testing
+variable "port_sample_size" {
+  type    = number
+  default = 500
+} # keep Neutron sane while testing
 
 
 # Guard RMS so plans don’t fail if recorder isn’t ready
@@ -42,13 +42,6 @@ variable "vpc_ids" {
   type        = list(string)
   default     = []
 }
-
-# RMS switch
-variable "enable_rms" {
-  type    = bool
-  default = false
-}
-
 
 
 

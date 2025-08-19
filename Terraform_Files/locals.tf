@@ -2,40 +2,39 @@
 # LOCALS: safe access, shaping, final object
 ############################################
 
-# Safe pull of RMS results (works even when data blocks have count=0)
+# 1) Safe pull of RMS results + effective IDs, driven by enable_rms
 locals {
   rms_vpcs_results = try(data.opentelekomcloud_rms_advanced_query_v1.vpcs[0].results, [])
   rms_elbs_results = try(data.opentelekomcloud_rms_advanced_query_v1.elbs[0].results, [])
   rms_nats_results = try(data.opentelekomcloud_rms_advanced_query_v1.nats[0].results, [])
 
   # Prefer RMS VPC IDs if present, else use provided var.vpc_ids
-  vpc_ids_effective = length(local.rms_vpcs_results) > 0
-    ? [for v in local.rms_vpcs_results : v.id]
-    : var.vpc_ids
+  vpc_ids_effective = length(local.rms_vpcs_results) > 0 ? [for v in local.rms_vpcs_results : v.id] : var.vpc_ids
 
   # IDs/maps used to drive guarded hydrations
   nat_ids = [for n in local.rms_nats_results : n.id]
   elb_map = { for r in local.rms_elbs_results : r.id => r }
 }
 
-# Normalize core resources (OTC direct + discovered subnets)
+# 2) Port sampling logic (keeps Neutron sane on large tenants)
+locals {
+  all_port_ids       = data.opentelekomcloud_networking_port_ids_v2.all.ids
+  port_ids_effective = length(local.all_port_ids) > var.port_sample_size ? slice(local.all_port_ids, 0, var.port_sample_size) : local.all_port_ids
+}
+
+# 3) Normalize core resources (OTC direct + discovered subnets)
 locals {
   vpcs = length(local.rms_vpcs_results) > 0 ? {
     for r in local.rms_vpcs_results :
     r.id => { id = r.id, name = try(r.name, null) }
-  } : {
+    } : {
     for vpc_id in var.vpc_ids :
     vpc_id => { id = vpc_id, name = null }
   }
 
   subnets = {
     for s in values(data.opentelekomcloud_vpc_subnet_v1.subnet) :
-    s.id => {
-      id     = s.id
-      name   = s.name
-      cidr   = s.cidr
-      vpc_id = s.vpc_id
-    }
+    s.id => { id = s.id, name = s.name, cidr = s.cidr, vpc_id = s.vpc_id }
   }
 
   instances = {
@@ -57,15 +56,15 @@ locals {
       device_id    = p.device_id
       device_owner = p.device_owner
       network_id   = p.network_id
-      fixed_ips    = p.all_fixed_ips          # [{ ip_address, subnet_id }]
+      fixed_ips    = p.all_fixed_ips # [{ ip_address, subnet_id }]
       sg_ids       = try(p.all_security_group_ids, [])
     }
   }
 
   # Reverse index: ports by instance/device id
   ports_by_device = {
-    for device_id in toset([for p in local.ports : p.device_id]) :
-    device_id => [for p in local.ports : p if p.device_id == device_id]
+    for device_id in toset([for p in values(local.ports) : p.device_id]) :
+    device_id => [for p in values(local.ports) : p if p.device_id == device_id]
   }
 
   # Volumes grouped per instance (attachment.server_id)
@@ -85,7 +84,7 @@ locals {
   }
 }
 
-# NATs / ELBs (empty when RMS is off)
+# 4) NATs / ELBs (empty when RMS is off)
 locals {
   nats = [
     for n in local.rms_nats_results : {
@@ -108,7 +107,7 @@ locals {
   ]
 }
 
-# VMs grouped under each subnet, including NICs and volumes
+# 5) VMs grouped under each subnet, including NICs and volumes
 locals {
   vms_by_subnet = {
     for sid, _ in local.subnets :
@@ -116,9 +115,9 @@ locals {
       for iid, inst in local.instances : merge(inst, {
         nics = [
           for port in lookup(local.ports_by_device, iid, []) : {
-            port_id    = port.id
-            ips        = port.fixed_ips    # list of { ip_address, subnet_id }
-            sg_ids     = port.sg_ids
+            port_id = port.id
+            ips     = port.fixed_ips
+            sg_ids  = port.sg_ids
           }
           if length([for ip in port.fixed_ips : ip if ip.subnet_id == sid]) > 0
         ]
@@ -132,14 +131,14 @@ locals {
   }
 }
 
-# Final nested object ready for export
+# 6) Final nested object ready for export
 locals {
   peer_network = {
     Peer_Network = {
       vpcs = [
         for vpc_id, v in local.vpcs : {
-          id      = v.id
-          label   = v.name
+          id    = v.id
+          label = v.name
           subnets = [
             for s in [for x in values(local.subnets) : x if x.vpc_id == vpc_id] : {
               id         = s.id
@@ -153,7 +152,7 @@ locals {
       ]
       nats           = local.nats
       load_balancers = local.elbs
-      backups        = {}   # add guarded CBR later if you want
+      backups        = {} # add guarded CBR later if needed
     }
   }
 }
