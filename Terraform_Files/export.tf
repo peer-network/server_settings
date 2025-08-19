@@ -7,5 +7,5 @@ resource "local_sensitive_file" "peer_network" {
 }
 
 output "peer_network_yaml_path" {
-  value = local_sensitive_file.peer_network_yaml.filename
+  value = local_sensitive_file.peer_network.filename
 }
