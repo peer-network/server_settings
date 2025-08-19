@@ -37,13 +37,21 @@ variable "enable_rms" {
 # Fallback if RMS is off: allow manual VPC IDs for subnet discovery
 
 # Only needed if you want subnets without RMS
-variable "vpc_ids" {
-  description = "Fallback VPC IDs when RMS is disabled/empty"
-  type        = list(string)
-  default     = []
+# variable "vpc_ids" {
+#   description = "Fallback VPC IDs when RMS is disabled/empty"
+#   type        = list(string)
+#   default     = []
+# }
+
+variable "vpc_ids" { 
+  type = list(string) 
+  default = [
+      "cb43c4e5-e25c-4727-b7ce-6b9995edffac",
+      "8165c92f-f183-4e22-a1c2-9df880276a11",
+      "10f8c808-f6bf-47a8-b3c5-5910bc691900",
+      "700af767-115d-43b8-8886-a6a4a63d59ef"
+  ]
 }
-
-
 
 
 # variable "tenant_name" {
@@ -108,12 +116,3 @@ variable "vpc_ids" {
 #   default     = "peer-network"
 # }
 
-# variable "vpc_ids" { 
-#   type = list(string) 
-#   default = [
-#       "cb43c4e5-e25c-4727-b7ce-6b9995edffac",
-#       "8165c92f-f183-4e22-a1c2-9df880276a11",
-#       "10f8c808-f6bf-47a8-b3c5-5910bc691900",
-#       "700af767-115d-43b8-8886-a6a4a63d59ef"
-#   ]
-# }

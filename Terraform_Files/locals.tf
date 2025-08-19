@@ -22,6 +22,47 @@ locals {
   port_ids_effective = length(local.all_port_ids) > var.port_sample_size ? slice(local.all_port_ids, 0, var.port_sample_size) : local.all_port_ids
 }
 
+## Safer port ID to be handled.
+locals {
+  ports = {
+    for p in values(data.opentelekomcloud_networking_port_v2.by_id) :
+    p.id => {
+      id           = p.id
+      name         = p.name
+      device_id    = p.device_id
+      device_owner = p.device_owner
+      network_id   = p.network_id
+
+      # raw list from provider (may be list of strings OR list of objects)
+      fixed_ips_raw = try(p.all_fixed_ips, [])
+
+      # canonical list of IP strings (works for both strings/objects)
+      fixed_ips = [
+        for ip in try(p.all_fixed_ips, []) :
+        (can(ip.ip_address) ? ip.ip_address : ip)
+      ]
+
+      # best-effort list of subnet IDs:
+      # - prefer provider’s all_fixed_ip_subnet_ids if it exists
+      # - else try to extract subnet_id from objects (strings produce nulls and are filtered out)
+      fixed_subnet_ids = try(
+        p.all_fixed_ip_subnet_ids,
+        compact([for ip in try(p.all_fixed_ips, []) : try(ip.subnet_id, null)])
+      )
+
+      sg_ids = try(p.all_security_group_ids, [])
+    }
+  }
+
+
+  # Reverse index: ports by instance/device id
+  ports_by_device = {
+    for device_id in toset([for p in values(local.ports) : p.device_id]) :
+    device_id => [for p in values(local.ports) : p if p.device_id == device_id]
+  }
+}
+
+
 # 3) Normalize core resources (OTC direct + discovered subnets)
 locals {
   vpcs = length(local.rms_vpcs_results) > 0 ? {
@@ -48,24 +89,24 @@ locals {
     }
   }
 
-  ports = {
-    for p in values(data.opentelekomcloud_networking_port_v2.by_id) :
-    p.id => {
-      id           = p.id
-      name         = p.name
-      device_id    = p.device_id
-      device_owner = p.device_owner
-      network_id   = p.network_id
-      fixed_ips    = p.all_fixed_ips # [{ ip_address, subnet_id }]
-      sg_ids       = try(p.all_security_group_ids, [])
-    }
-  }
+  # ports = {
+  #   for p in values(data.opentelekomcloud_networking_port_v2.by_id) :
+  #   p.id => {
+  #     id           = p.id
+  #     name         = p.name
+  #     device_id    = p.device_id
+  #     device_owner = p.device_owner
+  #     network_id   = p.network_id
+  #     fixed_ips    = p.all_fixed_ips # [{ ip_address, subnet_id }]
+  #     sg_ids       = try(p.all_security_group_ids, [])
+  #   }
+  # }
 
   # Reverse index: ports by instance/device id
-  ports_by_device = {
-    for device_id in toset([for p in values(local.ports) : p.device_id]) :
-    device_id => [for p in values(local.ports) : p if p.device_id == device_id]
-  }
+  # ports_by_device = {
+  #   for device_id in toset([for p in values(local.ports) : p.device_id]) :
+  #   device_id => [for p in values(local.ports) : p if p.device_id == device_id]
+  # }
 
   # Volumes grouped per instance (attachment.server_id)
   vols_by_instance = {
@@ -119,14 +160,14 @@ locals {
             ips     = port.fixed_ips
             sg_ids  = port.sg_ids
           }
-          if length([for ip in port.fixed_ips : ip if ip.subnet_id == sid]) > 0
+          #if length([for ip in port.fixed_ips : ip if ip.subnet_id == sid]) > 0
         ]
         volumes = lookup(local.vols_by_instance, iid, [])
       })
-      if length([
-        for port in lookup(local.ports_by_device, iid, []) :
-        1 if length([for ip in port.fixed_ips : ip if ip.subnet_id == sid]) > 0
-      ]) > 0
+      # if length([
+      #   for port in lookup(local.ports_by_device, iid, []) :
+      #   1 if length([for ip in port.fixed_ips : ip if ip.subnet_id == sid]) > 0
+      # ]) > 0
     ]
   }
 }
