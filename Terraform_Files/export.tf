@@ -1,6 +1,6 @@
 # export.tf
 
-resource "local_sensitive_file" "peer_network.yaml" {
+resource "local_sensitive_file" "peer_network" {
   filename        = "peer_network.yaml"
   content         = yamlencode(local.peer_network)
   file_permission = "0640"
