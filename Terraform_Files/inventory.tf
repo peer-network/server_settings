@@ -1,20 +1,41 @@
-############################
-# Core lists (provider)
-############################
-data "opentelekomcloud_compute_instances_v2" "all" {}
-data "opentelekomcloud_evs_volumes_v2"       "all" {}
+############################################
+# INVENTORY: OTC direct + RMS (guarded)
+# - Variables expected (define in variables.tf):
+#   enable_rms (bool), vpc_ids (list(string)), port_sample_size (number)
+############################################
 
-# Ports: list IDs then hydrate each
+############################
+# Core OTC (non-RMS) lists
+############################
+
+# All ECS instances
+data "opentelekomcloud_compute_instances_v2" "all" {}
+
+# All EVS volumes
+data "opentelekomcloud_evs_volumes_v2" "all" {}
+
+# Ports: get IDs, then hydrate a bounded set to avoid API/provider overload
 data "opentelekomcloud_networking_port_ids_v2" "all" {}
+
+# Limit per run via var.port_sample_size (raise gradually if you have lots)
+locals {
+  all_port_ids       = data.opentelekomcloud_networking_port_ids_v2.all.ids
+  port_ids_effective = length(local.all_port_ids) > var.port_sample_size
+    ? slice(local.all_port_ids, 0, var.port_sample_size)
+    : local.all_port_ids
+}
+
 data "opentelekomcloud_networking_port_v2" "by_id" {
-  for_each = toset(data.opentelekomcloud_networking_port_ids_v2.all.ids)
+  for_each = toset(local.port_ids_effective)
   port_id  = each.value
 }
 
 #############################################
-# RMS queries (guarded)
+# RMS (Config) queries — fully guarded
+# Minimal SELECTs to avoid schema surprises.
 #############################################
-# VPCs
+
+# VPCs (id, name)
 data "opentelekomcloud_rms_advanced_query_v1" "vpcs" {
   count = var.enable_rms ? 1 : 0
   expression = <<-SQL
@@ -24,27 +45,7 @@ data "opentelekomcloud_rms_advanced_query_v1" "vpcs" {
   SQL
 }
 
-# EIPs (camelCase in properties)
-data "opentelekomcloud_rms_advanced_query_v1" "eips" {
-  count = var.enable_rms ? 1 : 0
-  expression = <<-SQL
-    SELECT id, name, properties.publicIpAddress, properties.portId
-    FROM resources
-    WHERE provider='vpc' AND type='publicips'
-  SQL
-}
-
-# NAT Gateways (type name matters)
-data "opentelekomcloud_rms_advanced_query_v1" "nats" {
-  count = var.enable_rms ? 1 : 0
-  expression = <<-SQL
-    SELECT id, name
-    FROM resources
-    WHERE provider='nat' AND type='natGateways'
-  SQL
-}
-
-# ELBs
+# ELBs (id, name) -> then hydrate details below
 data "opentelekomcloud_rms_advanced_query_v1" "elbs" {
   count = var.enable_rms ? 1 : 0
   expression = <<-SQL
@@ -54,37 +55,20 @@ data "opentelekomcloud_rms_advanced_query_v1" "elbs" {
   SQL
 }
 
-data "opentelekomcloud_lb_loadbalancer_v3" "lb" {
-  for_each = local.elb_map
-  id       = each.key
-}
-
-# CBR vaults/backups (keep fields minimal to avoid schema surprises)
-data "opentelekomcloud_rms_advanced_query_v1" "cbr_vaults" {
+# NAT Gateways (id, name) -> then hydrate rules below
+data "opentelekomcloud_rms_advanced_query_v1" "nats" {
   count = var.enable_rms ? 1 : 0
   expression = <<-SQL
     SELECT id, name
     FROM resources
-    WHERE provider='cbr' AND type='vaults'
-  SQL
-}
-data "opentelekomcloud_rms_advanced_query_v1" "cbr_backups" {
-  count = var.enable_rms ? 1 : 0
-  expression = <<-SQL
-    SELECT id, name, properties.resource_id, properties.status
-    FROM resources
-    WHERE provider='cbr' AND type='backups'
+    WHERE provider='nat' AND type='natGateways'
   SQL
 }
 
-############################
-# Subnets per VPC (RMS or fallback list)
-############################
-locals {
-  vpcs_results = (length(data.opentelekomcloud_rms_advanced_query_v1.vpcs) > 0
-    ? data.opentelekomcloud_rms_advanced_query_v1.vpcs[0].results : [])
-  vpc_ids_effective = length(local.vpcs_results) > 0 ? [for v in local.vpcs_results : v.id] : var.vpc_ids
-}
+#############################################
+# Subnets per VPC
+# Uses local.vpc_ids_effective from locals.tf
+#############################################
 
 data "opentelekomcloud_vpc_subnet_ids_v1" "by_vpc" {
   for_each = toset(local.vpc_ids_effective)
@@ -96,19 +80,25 @@ data "opentelekomcloud_vpc_subnet_v1" "subnet" {
   id       = each.value
 }
 
-############################
-# NAT rules hydrated by gateway IDs (if any)
-############################
-locals {
-  nat_ids = (length(data.opentelekomcloud_rms_advanced_query_v1.nats) > 0
-    ? [for n in data.opentelekomcloud_rms_advanced_query_v1.nats[0].results : n.id] : [])
-}
+#############################################
+# NAT rules hydrate (only when RMS is ON)
+#############################################
 
 data "opentelekomcloud_nat_snat_rules_v2" "snat" {
-  for_each   = toset(local.nat_ids)
+  for_each   = var.enable_rms ? toset(local.nat_ids) : toset([])
   gateway_id = each.value
 }
+
 data "opentelekomcloud_nat_dnat_rules_v2" "dnat" {
-  for_each   = toset(local.nat_ids)
+  for_each   = var.enable_rms ? toset(local.nat_ids) : toset([])
   gateway_id = each.value
+}
+
+#############################################
+# ELB detail hydrate (only when RMS is ON)
+#############################################
+
+data "opentelekomcloud_lb_loadbalancer_v3" "lb" {
+  for_each = var.enable_rms ? local.elb_map : {}
+  id       = each.key
 }

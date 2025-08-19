@@ -8,7 +8,7 @@ variable "domain_name" {
   type = string
 }
 
-variable "tenant_id" {
+variable "tenant_name" {
   type = string
 }
 
@@ -22,27 +22,33 @@ variable "secret_access_key" {
   sensitive = true
 }
 
-variable "enable_rms" {
-  type    = bool
-  default = true
-}
-
-variable "vpc_ids" {
-  type    = list(string)
-  default = []
-}
+variable "port_sample_size"  {
+   type = number, 
+   default = 500 
+}  # keep Neutron sane while testing
 
 
 # Guard RMS so plans don’t fail if recorder isn’t ready
-variable "enable_rms" { 
-  type = bool, default = true 
+variable "enable_rms" {
+  description = "Run RMS (Config) queries. OFF avoids provider panics."
+  type        = bool
+  default     = false
+}
+# Fallback if RMS is off: allow manual VPC IDs for subnet discovery
+
+# Only needed if you want subnets without RMS
+variable "vpc_ids" {
+  description = "Fallback VPC IDs when RMS is disabled/empty"
+  type        = list(string)
+  default     = []
 }
 
-# Fallback if RMS is off: allow manual VPC IDs for subnet discovery
-variable "vpc_ids" {
-  type    = list(string)
-  default = []
+# RMS switch
+variable "enable_rms" {
+  type    = bool
+  default = false
 }
+
 
 
 

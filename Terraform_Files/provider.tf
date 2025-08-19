@@ -5,7 +5,7 @@ terraform {
   required_providers {
     opentelekomcloud = {
       source  = "opentelekomcloud/opentelekomcloud"
-      version = "~> 1.36"
+      version = "= 1.36.40"
     }
     local = {
       source  = "hashicorp/local"
@@ -22,7 +22,7 @@ provider "opentelekomcloud" {
   secret_key = var.secret_access_key
 
   # Scoping
-  user_domain_name    = var.domain_name
-  project_domain_name = var.domain_name
-  tenant_id           = var.tenant_id # prefer ID; or use tenant_name instead
+  domain_name = var.domain_name
+  tenant_name = var.tenant_name
+  # tenant_id         = var.tenant_id # prefer ID; or use tenant_name instead
 }
