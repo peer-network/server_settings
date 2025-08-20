@@ -9,7 +9,8 @@ locals {
   rms_nats_results = try(data.opentelekomcloud_rms_advanced_query_v1.nats[0].results, [])
 
   # Prefer RMS VPC IDs if present, else use provided var.vpc_ids
-  vpc_ids_effective = length(local.rms_vpcs_results) > 0 ? [for v in local.rms_vpcs_results : v.id] : var.vpc_ids
+  # c_ids_effective = length(local.rms_vpcs_results) > 0 ? [for v in local.rms_vpcs_results : v.id] : var.vpc_ids
+  vpc_ids_effective = var.vpc_ids
 
   # IDs/maps used to drive guarded hydrations
   nat_ids = [for n in local.rms_nats_results : n.id]

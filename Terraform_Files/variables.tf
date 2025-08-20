@@ -32,7 +32,7 @@ variable "port_sample_size" {
 variable "enable_rms" {
   description = "Run RMS (Config) queries. OFF avoids provider panics."
   type        = bool
-  default     = false
+  default     = true
 }
 # Fallback if RMS is off: allow manual VPC IDs for subnet discovery
 
@@ -43,15 +43,20 @@ variable "enable_rms" {
 #   default     = []
 # }
 
-variable "vpc_ids" { 
-  type = list(string) 
-  default = [
-      "cb43c4e5-e25c-4727-b7ce-6b9995edffac",
-      "8165c92f-f183-4e22-a1c2-9df880276a11",
-      "10f8c808-f6bf-47a8-b3c5-5910bc691900",
-      "700af767-115d-43b8-8886-a6a4a63d59ef"
-  ]
+variable "vpc_ids" {
+  type = list(string)
+  default = ["cb43c4e5-e25c-4727-b7ce-6b9995edffac"]
 }
+
+# variable "vpc_ids" { 
+#   type = list(string) 
+#   default = [
+#       "cb43c4e5-e25c-4727-b7ce-6b9995edffac",   # peer-admin
+#       "8165c92f-f183-4e22-a1c2-9df880276a11",   # vpc-beta-prod
+#       "10f8c808-f6bf-47a8-b3c5-5910bc691900",   # vpc-peer-beta-testing
+#       "700af767-115d-43b8-8886-a6a4a63d59ef"    # peer beta
+#   ]
+# }
 
 
 # variable "tenant_name" {
