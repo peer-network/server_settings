@@ -1,0 +1,93 @@
+// Beta_Testing Monitor config file for Alloy (Grafana)
+// Enable logging
+logging {
+  level = "debug"
+  format = "logfmt"
+}
+
+// Loki client (Writer)
+loki.write "default" {
+  endpoint {
+    url = "http://10.50.1.150:3100/loki/api/v1/push"
+  }
+}
+
+// System syslog file (simplified for testing)
+loki.source.file "syslog" {
+  targets = [
+    {
+      "__path__" = "/var/log/syslog",
+      job = "syslog",
+    },
+  ]
+  forward_to = [loki.write.default.receiver]
+}
+
+// Auth logs
+loki.source.file "auth" {
+  targets = [
+    {
+      "__path__" = "/var/log/auth.log",
+      job = "auth",
+      host = "test-backend-server",
+    },
+  ]
+  forward_to = [loki.write.default.receiver]
+}
+
+// JournalD logs
+loki.source.journal "systemd" {
+  labels = {
+    job = "systemd",
+    host = "test-backend-server",
+  }
+  forward_to = [loki.write.default.receiver]
+}
+
+// Nginx Logs
+loki.source.file "nginx_test_backend" {
+  targets = [
+    {
+      "__path__" = "/var/log/nginx/*.log",
+      job = "nginx",
+      host = "test-backend-server",
+    },
+  ]
+  forward_to = [loki.write.default.receiver]
+}
+
+
+// PHP /var/log/php8.3-fpm.log
+loki.source.file "php_83_test_backend" {
+  targets = [
+    {
+      "__path__" = "/var/log/php8.3-fpm.log",
+      job = "php_fpm",
+      host = "test-backend-server",
+    },
+  ]
+  forward_to = [loki.write.default.receiver]
+}
+
+// peer_backend flat logs
+loki.source.file "peer_backend_logs" {
+  targets = [
+    {
+      "__path__" = "/var/www/peer_beta/peer_backend/runtime-data/logs/*",
+      job = "backend_logs",
+      host = "test-backend-server",
+    },
+  ]
+  forward_to = [loki.write.default.receiver]
+}
+
+// Mintbot nested logs
+loki.source.file "webhook_log" {
+  targets = [
+    {
+      "__path__" = "/var/log/webhook.log",
+      job = "peer_backend_webhook",
+    },
+  ]
+  forward_to = [loki.write.default.receiver]
+}

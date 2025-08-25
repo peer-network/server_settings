@@ -1,3 +1,5 @@
 secrets.tfvars
 secrets.auto.tfvars
 clouds.yaml
+*.tfstate
+peer_network.yaml
