@@ -5,12 +5,23 @@ logging {
   format = "logfmt"
 }
 
-// Loki client (Writer)
+// Add limiter for Loki 
 loki.write "default" {
   endpoint {
-    url = "http://10.50.1.150:3100/loki/api/v1/push"
+    url         = "http://10.50.1.150:3100/loki/api/v1/push"
+    tenant_id   = "fake"     # be explicit so writes and queries use the same tenant
+    batch_size  = "256KiB"   # default is "1MiB"
+    batch_wait  = "2s"       # default is "1s"
+    # retry_on_http_429 is true by default
   }
 }
+
+// // Loki client (Writer)
+// loki.write "default" {
+//   endpoint {
+//     url = "http://10.50.1.150:3100/loki/api/v1/push"
+//   }
+// }
 
 // System syslog file (simplified for testing)
 loki.source.file "syslog" {
