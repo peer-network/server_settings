@@ -55,17 +55,6 @@ loki.source.journal "systemd" {
   forward_to = [loki.write.default.receiver]
 }
 
-// Nginx Logs
-// loki.source.file "nginx_test_backend" {
-//   targets = [
-//     {
-//       "__path__" = "/var/log/nginx/*.log",
-//       job = "nginx",
-//       host = "test-backend-server",
-//     },
-//   ]
-//   forward_to = [loki.write.default.receiver]
-// }
 
 // NGINX
 local.file_match "nginx" {
@@ -91,17 +80,6 @@ loki.source.file "php_83_test_backend" {
   forward_to = [loki.write.default.receiver]
 }
 
-// // peer_backend flat logs
-// loki.source.file "peer_backend_logs" {
-//   targets = [
-//     {
-//       "__path__" = "/var/www/peer_beta/peer_backend/runtime-data/logs/*",
-//       job = "backend_logs",
-//       host = "test-backend-server",
-//     },
-//   ]
-//   forward_to = [loki.write.default.receiver]
-// }
 
 // peer_backend flat + nested logs  (use ** to recurse if needed)
 local.file_match "backend_logs" {
@@ -113,18 +91,6 @@ loki.source.file "backend_logs" {
   targets     = local.file_match.backend_logs.targets
   forward_to  = [loki.write.default.receiver]
 }
-
-
-// // Mintbot nested logs
-// loki.source.file "webhook_log" {
-//   targets = [
-//     {
-//       "__path__" = "/var/log/webhook.log",
-//       job = "peer_backend_webhook",
-//     },
-//   ]
-//   forward_to = [loki.write.default.receiver]
-// }
 
 
 // webhook single file (no discovery needed because it's a single exact file)
