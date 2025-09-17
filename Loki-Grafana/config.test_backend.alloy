@@ -16,87 +16,242 @@ loki.write "default" {
   }
 }
 
-// // Loki client (Writer)
-// loki.write "default" {
-//   endpoint {
-//     url = "http://10.50.1.150:3100/loki/api/v1/push"
-//   }
-// }
+// Common labels to re-use in targets
+// Note: Using direct label assignment instead of local.labels component
+// which isn't available in all Alloy versions
 
-// System syslog file (simplified for testing)
-loki.source.file "syslog" {
+// =============================================================================
+// NGINX LOGS (access + error) — note: include both /var/log/nginx and /var/log/ngnix
+// =============================================================================
+// Access logs
+loki.source.file "nginx_access" {
   targets = [
-    {
-      "__path__" = "/var/log/syslog",
-      job = "syslog",
-    },
-  ]
-  forward_to = [loki.write.default.receiver]
-}
-
-// Auth logs
-loki.source.file "auth" {
-  targets = [
-    {
-      "__path__" = "/var/log/auth.log",
-      job = "auth",
+    { 
+      __path__ = "/var/log/nginx/*access*.log",
+      job = "nginx",
+      stream = "access",
       host = "test-backend-server",
+      env = "beta",
+    },
+    { 
+      __path__ = "/var/log/ngnix/access*.log",
+      job = "nginx",
+      stream = "access",
+      host = "test-backend-server",
+      env = "beta",
     },
   ]
-  forward_to = [loki.write.default.receiver]
+  forward_to = [loki.process.nginx_access.receiver]
 }
 
-// JournalD logs
-loki.source.journal "systemd" {
-  labels = {
-    job = "systemd",
-    host = "test-backend-server",
+// Parse access lines → add method/path/status as labels for easier queries
+loki.process "nginx_access" {
+  stage.regex {
+    expression = "^(?P<ip>\\S+) \\S+ \\S+ \\[(?P<ts>[^\\]]+)\\] \"(?P<method>[A-Z]+) (?P<path>\\S+)[^\"]*\" (?P<status>\\d{3}) (?P<bytes>\\d+)"
+  }
+  stage.labels {
+    values = { method = "", path = "", status = "", app = "nginx", stream = "access" }
   }
   forward_to = [loki.write.default.receiver]
 }
 
-
-// NGINX
-local.file_match "nginx" {
-  path_targets = [
-    { __path__ = "/var/log/nginx/*.log", job = "nginx", host = "test-backend-server" },
-  ]
-}
-loki.source.file "nginx" {
-  targets     = local.file_match.nginx.targets
-  forward_to  = [loki.write.default.receiver]
-}
-
-
-// PHP /var/log/php8.3-fpm.log
-loki.source.file "php_83_test_backend" {
+// Error logs
+loki.source.file "nginx_error" {
   targets = [
     {
-      "__path__" = "/var/log/php8.3-fpm.log",
-      job = "php_fpm",
+      __path__ = "/var/log/nginx/*error*.log",
+      job = "nginx",
+      stream = "error",
       host = "test-backend-server",
+      env = "beta",
+    },
+    {
+      __path__ = "/var/log/ngnix/error*.log",
+      job = "nginx",
+      stream = "error",
+      host = "test-backend-server",
+      env = "beta",
+    },
+  ]
+  forward_to = [loki.process.nginx_error.receiver]
+}
+
+// Parse error lines → add severity (level)
+loki.process "nginx_error" {
+  stage.regex {
+    expression = "^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2} \\[[^\\]]*?\\] \\[(?P<level>[a-zA-Z]+)\\] .*"
+  }
+  stage.labels { 
+    values = { level = "", app = "nginx", stream = "error" } 
+  }
+  forward_to = [loki.write.default.receiver]
+}
+
+// =============================================================================
+// PHP‑FPM LOGS
+// =============================================================================
+loki.source.file "php_fpm" {
+  targets = [
+    { 
+      __path__ = "/var/log/php*-fpm.log",
+      job = "php_fpm",
+      app = "php-fpm",
+      host = "test-backend-server",
+      env = "beta",
+    },
+  ]
+  forward_to = [loki.process.php_fpm.receiver]
+}
+
+// Extract common severity tokens so you can query level=~"ERROR|WARNING|NOTICE"
+loki.process "php_fpm" {
+  stage.regex {
+    expression = ".*\\[(?P<level>ERROR|WARNING|NOTICE)\\].*"
+  }
+  stage.labels { 
+    values = { level = "" } 
+  }
+  forward_to = [loki.write.default.receiver]
+}
+
+// =============================================================================
+// APP / WEBHOOK LOGS
+// =============================================================================
+// Backend app logs under /var/www/peer_beta/peer_backend/
+// If your app writes JSON, this pipeline will expose fields. If it's logfmt, swap
+// stage.json for stage.logfmt (one line below) and keep the labels stage.
+loki.source.file "backend_app" {
+  targets = [
+    {
+      __path__ = "/var/www/peer_beta/peer_backend/runtime-data/logs/*",
+      job = "backend_logs",
+      app = "peer_backend",
+      host = "test-backend-server",
+      env = "beta",
+    },
+    {
+      __path__ = "/var/www/peer_beta/peer_backend/**/*.log",
+      job = "backend_logs",
+      app = "peer_backend",
+      host = "test-backend-server",
+      env = "beta",
+    },
+  ]
+  forward_to = [loki.process.backend_app.receiver]
+}
+
+loki.process "backend_app" {
+  // Only process if logs are actually JSON - remove if they're not
+  stage.match {
+    selector = "{job=\"backend_logs\"}"
+    
+    // Try to parse as JSON, but don't fail if it's not JSON
+    stage.json {
+      expressions = {
+        level = "",
+        module = "",
+        service = "",
+      }
+    }
+    
+    stage.labels { 
+      values = { 
+        level = "",
+        module = "", 
+        service = "",
+      } 
+    }
+  }
+  forward_to = [loki.write.default.receiver]
+}
+
+// Webhook (single file)
+loki.source.file "webhook" {
+  targets = [
+    {
+      __path__ = "/var/log/webhook.log",
+      job = "peer_backend_webhook",
+      app = "webhook",
+      host = "test-backend-server",
+      env = "beta",
+    },
+  ]
+  forward_to = [loki.process.webhook.receiver]
+}
+
+loki.process "webhook" {
+  // Only process if logs are actually JSON - remove if they're not
+  stage.match {
+    selector = "{job=\"peer_backend_webhook\"}"
+    
+    // Try to parse as JSON, but don't fail if it's not JSON
+    stage.json {
+      expressions = {
+        level = "",
+        target = "",
+        url = "",
+      }
+    }
+    
+    stage.labels { 
+      values = { 
+        level = "", 
+        target = "", 
+        url = "",
+      } 
+    }
+  }
+  forward_to = [loki.write.default.receiver]
+}
+
+// =============================================================================
+// GENERAL OBSERVABILITY (system logs)
+// =============================================================================
+// Syslog-style files (Ubuntu/Debian)
+loki.source.file "sysfiles" {
+  targets = [
+    {
+      __path__ = "/var/log/syslog",
+      job = "syslog",
+      host = "test-backend-server",
+      env = "beta",
+    },
+    {
+      __path__ = "/var/log/auth.log",
+      job = "auth",
+      host = "test-backend-server",
+      env = "beta",
+    },
+    {
+      __path__ = "/var/log/kern.log",
+      job = "kernel",
+      host = "test-backend-server",
+      env = "beta",
     },
   ]
   forward_to = [loki.write.default.receiver]
 }
 
-
-// peer_backend flat + nested logs  (use ** to recurse if needed)
-local.file_match "backend_logs" {
-  path_targets = [
-    { __path__ = "/var/www/peer_beta/peer_backend/runtime-data/logs/**/*", job = "backend_logs", host = "test-backend-server" },
-  ]
+// Systemd journal (broader coverage; includes unit names, etc.)
+loki.source.journal "systemd" {
+  labels = { 
+    job = "systemd",
+    host = "test-backend-server",
+    env = "beta",
+  }
+  // Optional: focus on units you care about; otherwise comment out 'matches'
+  // matches = [
+  //   { "_SYSTEMD_UNIT" = "nginx.service" },
+  //   { "_SYSTEMD_UNIT" = "php8.3-fpm.service" },
+  //   { "_SYSTEMD_UNIT" = "ssh.service" },
+  // ]
+  forward_to = [loki.write.default.receiver]
 }
-loki.source.file "backend_logs" {
-  targets     = local.file_match.backend_logs.targets
-  forward_to  = [loki.write.default.receiver]
-}
 
-
-// webhook single file (no discovery needed because it's a single exact file)
-loki.source.file "webhook_log" {
-  targets     = [
-    { __path__ = "/var/log/webhook.log", job = "peer_backend_webhook", host = "test-backend-server" },
-  ]
-  forward_to  = [loki.write.default.receiver]
-}
+loki.source.file.nginx_error error="stat /var/log/nginx/*error*.log: no such file or directory" filename=/var/log/nginx/*error*.log
+loki.source.file.nginx_error error="stat /var/log/ngnix/*error*.log: no such file or directory" filename=/var/log/ngnix/*error*.log
+oki.source.file.php_fpm error="stat /var/log/php*-fpm.log: no such file or directory" filename=/var/log/php*-fpm.log
+loki.source.file.nginx_access error="stat /var/log/nginx/*access*.log: no such file or directory" filename=/var/log/nginx/*access*.log
+loki.source.file.nginx_access error="stat /var/log/ngnix/*access*.log: no such file or directory" filename=/var/log/ngnix/*access*.log
+loki.source.file.backend_app error="stat /var/www/peer_beta/peer_backend/runtime-data/logs/*: no such file or directory" filename=/var/www/peer_beta/peer_backend/runti>
+loki.source.file.backend_app error="stat /var/www/peer_beta/peer_backend/**/*.log: no such file or directory" filename=/var/www/peer_beta/peer_backend/**/*.log
