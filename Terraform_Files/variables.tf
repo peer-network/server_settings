@@ -45,7 +45,7 @@ variable "enable_rms" {
 
 variable "vpc_ids" {
   type = list(string)
-  default = ["cb43c4e5-e25c-4727-b7ce-6b9995edffac"]
+  default = ["8165c92f-f183-4e22-a1c2-9df880276a11"]
 }
 
 # variable "vpc_ids" { 
