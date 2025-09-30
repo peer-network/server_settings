@@ -133,7 +133,7 @@ create_vm () {
 
   VOLID="local:${VMID}/vm-${VMID}-disk-0.raw"
 
-  if ! qm importdisk "$VMID" /var/lib/vz/template/iso/noble-server-cloudimg-amd64.img local
+  if ! qm importdisk "$VMID" /var/lib/vz/template/iso/noble-server-cloudimg-amd64.img local; then
     VM_STATUS["$VMID"]="FAILED"; VM_REASON["$VMID"]="import disk failed"; return
   fi
 
