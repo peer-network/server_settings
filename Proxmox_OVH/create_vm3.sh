@@ -137,7 +137,7 @@ create_vm () {
     VM_STATUS["$VMID"]="FAILED"; VM_REASON["$VMID"]="import disk failed"; return
   fi
 
-  if ! qm set "$VMID" --scsi0 local:${VOLID}G,iothread=1,cache=writeback; then
+  if ! qm set "$VMID" --scsi0 local:${VOLID},iothread=1,cache=writeback; then
     VM_STATUS["$VMID"]="FAILED"; VM_REASON["$VMID"]="qm failed to set ${VOLID} OS drive"; return
   fi
 
