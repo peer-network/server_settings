@@ -2,7 +2,9 @@
 set -euo pipefail
 
 # ====== SETTINGS ======
-IMG="/var/lib/vz/template/iso/noble-server-cloudimg-amd64.img"
+
+# IMG="/var/lib/vz/template/iso/noble-server-cloudimg-amd64.img"
+IMG="/var/lib/vz/template/iso/noble-server-cloudimg-amd64.qcow2"
 STOR="local"
 BR0="vmbr0"
 # Updated to match your actual network
@@ -131,17 +133,20 @@ create_vm () {
     VM_STATUS["$VMID"]="FAILED"; VM_REASON["$VMID"]="qm create failed"; return
   fi
 
-  VOLID="local:${VMID}/vm-${VMID}-disk-0.raw"
+  #qm set 203 --scsi0 local:203/vm-203-disk-0.raw
+
+  VOLID=${VMID}/vm-${VMID}-disk-0.raw
+echo text volid "${VOLID}", "${OSDISK_GB}"
 
   if ! qm importdisk "$VMID" /var/lib/vz/template/iso/noble-server-cloudimg-amd64.img local; then
     VM_STATUS["$VMID"]="FAILED"; VM_REASON["$VMID"]="import disk failed"; return
   fi
 
-  if ! qm set "$VMID" --scsi0 local:${VOLID},iothread=1,cache=writeback; then
+  if ! qm set "$VMID" --scsi0 local:"${VOLID}", iothread=1, cache=writeback; then
     VM_STATUS["$VMID"]="FAILED"; VM_REASON["$VMID"]="qm failed to set ${VOLID} OS drive"; return
   fi
 
-  if ! qm resize "$VMID" scsi0 ${OSDISK_GB}G; then
+  if ! qm resize "$VMID" scsi0 ${OSDISK_GB}; then
     VM_STATUS["$VMID"]="FAILED"; VM_REASON["$VMID"]="os disk resize failed"; return    
   fi
 
