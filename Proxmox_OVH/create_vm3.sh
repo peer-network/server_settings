@@ -131,28 +131,20 @@ create_vm () {
     VM_STATUS["$VMID"]="FAILED"; VM_REASON["$VMID"]="qm create failed"; return
   fi
 
-  if ! pvesm alloc vm_storage $VMID vm-${VMID}-disk-0 $OSDISK_GB
-      VM_STATUS["$VMID"]="FAILED"; VM_REASON["$VMID"]="pvesm failed to allocate for OS drive"; return
-    if ! qm set $VMID --scsi0 vm_storage:vm-${VMID}-disk-0,iothread=1,cache=writeba 
-        VM_STATUS["$VMID"]="FAILED"; VM_REASON["$VMID"]="qm failed to set vm_storage OS drive"; return
+  VOLID="local:${VMID}/vm-${VMID}-disk-0.raw"
+
+  if ! qm importdisk "$VMID" /var/lib/vz/template/iso/noble-server-cloudimg-amd64.img local
+    VM_STATUS["$VMID"]="FAILED"; VM_REASON["$VMID"]="import disk failed"; return
   fi
 
-#   # Import disk into storage
-#   if ! qm importdisk "$VMID" "$IMG" "$STOR" >/dev/null 2>&1; then
-#     VM_STATUS["$VMID"]="FAILED"; VM_REASON["$VMID"]="disk import failed"; return
-#   fi
+  if ! qm set "$VMID" --scsi0 local:${VOLID}G,iothread=1,cache=writeback; then
+    VM_STATUS["$VMID"]="FAILED"; VM_REASON["$VMID"]="qm failed to set ${VOLID} OS drive"; return
+  fi
 
-#   # Find first unused disk and adopt it
-#   local DISK_SPEC
-#   DISK_SPEC=$(qm config "$VMID" | awk -F': ' '/^unused[0-9]+:/ {print $2; exit}')
-#   if [[ -z "$DISK_SPEC" ]]; then
-#     VM_STATUS["$VMID"]="FAILED"; VM_REASON["$VMID"]="no imported disk found"; return
-#   fi
+  if ! qm resize "$VMID" scsi0 ${OSDISK_GB}G; then
+    VM_STATUS["$VMID"]="FAILED"; VM_REASON["$VMID"]="os disk resize failed"; return    
+  fi
 
-#   # Attach disk as scsi0 and set boot order
-#   if ! qm set "$VMID" --scsi0 "$DISK_SPEC" --boot order=scsi0; then
-#     VM_STATUS["$VMID"]="FAILED"; VM_REASON["$VMID"]="attach scsi0/boot failed"; return
-#   fi
 
 #   # Cloud-init drive, serial console, and resize OS disk
 #   if ! qm set "$VMID" --ide2 "${STOR}:cloudinit" --serial0 socket --vga serial0; then
@@ -163,7 +155,7 @@ create_vm () {
   # qm set "$VMID" --firewall 1 || true
 
   # Resize may be a no-op if image already >= requested size
-  qm resize "$VMID" scsi0 "${OSDISK_GB}G" >/dev/null 2>&1 || true
+  # qm resize "$VMID" scsi0 "${OSDISK_GB}G" >/dev/null 2>&1 || true
 
   # Determine IP configuration based on network
   local IP_CONFIG
@@ -259,7 +251,7 @@ create_vm 206 "peer-prod-database"   3 16  100        "162.19.169.226" "vmbr0" "
 # Summary table
 printf "\n%-6s %-24s %-10s %-s\n" "VMID" "NAME" "STATUS" "REASON/INFO"
 printf "%-6s %-24s %-10s %-s\n" "-----" "------------------------" "--------" "------------------------------"
-for vmid in 201 202 203 204 205 206; do
+for vmid in 201 ; do  #202 203 204 205 206
   name="$(qm config "$vmid" 2>/dev/null | awk -F': ' '/^name:/{print $2}' || echo 'N/A')"
   status="${VM_STATUS[$vmid]:-UNKNOWN}"
   reason="${VM_REASON[$vmid]:-}"
