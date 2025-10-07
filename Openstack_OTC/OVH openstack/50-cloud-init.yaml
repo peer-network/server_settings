@@ -2,34 +2,23 @@ network:
   version: 2
   renderer: networkd
   ethernets:
-    enp1s0f0:  # << NIC 1
+    enp1s0f0:  # Primary NIC - handles ALL traffic
       dhcp4: false
       dhcp6: false
       addresses:
-        - 162.19.169.215/24  # << IP from provider
-        - 51.38.118.220/32   # Additional IP (failover IP)
+        - 162.19.169.215/24  # Main IP for management
+        - 51.38.118.220/32   # Additional IP for OpenStack services
       routes:
         - to: default
-          via: 162.19.169.254  # << Gateway
+          via: 162.19.169.254
         - to: 51.38.118.220/32
           scope: link
       nameservers:
         addresses:
-          - 213.186.33.99  # OVH DNS
+          - 213.186.33.99
           - 8.8.8.8
-
-    enp1s0f1:  # << NIC 2
+    
+    enp1s0f1:  # Second NIC - not usable without vRack
       dhcp4: false
       dhcp6: false
-      # Intentionally no IP - for OpenStack external network
-
-  bridges:
-    br-ex:
-      interfaces: [enp1s0f1]
-      dhcp4: false
-      dhcp6: false
-      addresses:
-        - 51.38.118.220/32
-      routes:
-        - to: 51.38.118.220/32
-          scope: link
+      # Leave completely unconfigured
