@@ -32,5 +32,10 @@ cinder_volume_group: "cinder-volumes"
 
 # Neutron configuration for external network
 # This tells Neutron which physical network maps to which interface
-neutron_bridge_name: "br-ex,br-ex2"
+
+# neutron_bridge_name: "br-ex,br-ex2"
+neutron_ovs_bridge_mappings: "physnet1:br-ex"
+
 neutron_external_interface: "enp1s0f1"
+
+
