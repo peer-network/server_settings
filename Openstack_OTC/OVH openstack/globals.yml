@@ -1,0 +1,36 @@
+---
+workaround_ansible_issue_8743: yes
+kolla_base_distro: "ubuntu"
+
+# Network interfaces - All internal traffic on enp1s0f0
+network_interface: "enp1s0f0"
+api_interface: "enp1s0f0"
+tunnel_interface: "enp1s0f0"
+storage_interface: "enp1s0f0"
+
+# External interface for Neutron (VM external connectivity)
+# neutron_external_interface: "enp1s0f1"
+neutron_external_interface: "br-ex"
+
+
+# VIP - Use your main IP since this is single-node
+kolla_internal_vip_address: "162.19.169.215"
+
+# Single node - disable HA components
+enable_haproxy: "no"
+enable_keepalived: "no"
+enable_proxysql: "no"
+
+# Core OpenStack services
+enable_openstack_core: "yes"
+neutron_plugin_agent: "openvswitch"
+
+# Cinder block storage
+enable_cinder: "yes"
+enable_cinder_backend_lvm: "yes"
+cinder_volume_group: "cinder-volumes"
+
+# Neutron configuration for external network
+# This tells Neutron which physical network maps to which interface
+neutron_bridge_name: "br-ex,br-ex2"
+neutron_external_interface: "enp1s0f1"

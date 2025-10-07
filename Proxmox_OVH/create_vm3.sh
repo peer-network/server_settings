@@ -3,8 +3,8 @@ set -euo pipefail
 
 # ====== SETTINGS ======
 
-# IMG="/var/lib/vz/template/iso/noble-server-cloudimg-amd64.img"
-IMG="/var/lib/vz/template/iso/noble-server-cloudimg-amd64.qcow2"
+IMG="/var/lib/vz/template/iso/noble-server-cloudimg-amd64.img"
+# IMG="/var/lib/vz/template/iso/noble-server-cloudimg-amd64.qcow2"
 STOR="local"
 BR0="vmbr0"
 # Updated to match your actual network
@@ -12,11 +12,10 @@ GATEWAY="162.19.169.1"  # Your actual gateway
 CIUSER="peer"
 PUBKEY="/root/.ssh/id_rsa.pub"   # Fixed typo from id_rda.pub
 SNIPPET="/var/lib/vz/snippets/cloudinit-userdata.yaml"
+PEER_PASSWORD="peer2025"
 # ======================
 
   # Generate password hash for 'peer' user (change 'changeme' to your desired password)
-  local PEER_PASSWORD="peer2025"
-  local PASSWORD_HASH
   PASSWORD_HASH=$(openssl passwd -6 "$PEER_PASSWORD")
 
 mkdir -p /var/lib/vz/snippets
@@ -162,8 +161,8 @@ create_vm () {
 
   #qm set 203 --scsi0 local:203/vm-203-disk-0.raw
 
-  VOLID=${VMID}/vm-${VMID}-disk-0.raw
-echo text volid "${VOLID}", "${OSDISK_GB}"
+  #VOLID=${VMID}/vm-${VMID}-disk-0.raw
+
 
   # Import disk - this can take time
   echo "    Importing disk image (this may take 30-60 seconds)..."
@@ -184,6 +183,15 @@ echo text volid "${VOLID}", "${OSDISK_GB}"
   if [[ -z "$DISK_SPEC" ]]; then
     VM_STATUS["$VMID"]="FAILED"
     VM_REASON["$VMID"]="no imported disk found"
+    return
+  fi
+
+  VOLID=$(qm config 203 | awk -F': ' '/^unused[0-9]+:/ {print $2; exit}')
+  echo text volid "${VOLID}", "${OSDISK_GB}"
+
+  if ! qm set 203 --scsi0 "$VOLID",iothread=1,cache=writeback; then
+    VM_STATUS["$VMID"]="FAILED"
+    VM_REASON["$VMID"]="disk import failed or timed out"
     return
   fi
 
