@@ -1,30 +1,35 @@
 network:
   version: 2
   renderer: networkd
+
   ethernets:
-    enp1s0f0:  # Primary NIC - handles ALL traffic
+    enp1s0f0:
       dhcp4: false
       dhcp6: false
+      # This NIC belongs to br-ex
+      # No IP directly here
+    enp1s0f1:
+      dhcp4: false
+      dhcp6: false
+      # This NIC belongs to br-int2
+      # No IP directly here
+
+  bridges:
+    br-ex:
+      interfaces: [enp1s0f0]
+      dhcp4: no
       addresses:
-        - 162.19.169.215/24  # Main IP for management
-        - 51.38.118.220/32   # Additional IP for OpenStack services
+        - 162.19.169.215/24
       routes:
         - to: default
           via: 162.19.169.254
-        - to: 51.38.118.220/32
-          scope: link
       nameservers:
-        addresses:
-          - 213.186.33.99
-          - 8.8.8.8
-    
-    enp1s0f1:  # Second NIC - not usable without vRack
-      dhcp4: false
-      dhcp6: false
-      addresses:
-        - 2001:41d0:700:6cd7::1/64
-      routes:
-        - to: default 
-          via:  2001:41d0:700:6cd7:00ff:00ff:00ff:00ff
+        addresses: [213.186.33.99, 8.8.8.8]
 
-      # Leave completely unconfigured
+    br-int2:
+      interfaces: [enp1s0f1]
+      dhcp4: no
+      dhcp6: yes   # Allow IPv6 configuration
+      accept-ra: yes
+      addresses:
+        - "2001:41d0:700:6cd8::1/64"  # Adjust to your subnet
