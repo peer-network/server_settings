@@ -21,4 +21,10 @@ network:
     enp1s0f1:  # Second NIC - not usable without vRack
       dhcp4: false
       dhcp6: false
+      addresses:
+        - 2001:41d0:700:6cd7::1/64
+      routes:
+        - to: default 
+          via:  2001:41d0:700:6cd7:00ff:00ff:00ff:00ff
+
       # Leave completely unconfigured
