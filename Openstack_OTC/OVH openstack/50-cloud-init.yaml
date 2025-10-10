@@ -1,35 +1,34 @@
 network:
   version: 2
   renderer: networkd
-
   ethernets:
-    enp1s0f0:
+    enp1s0f0:  # Public NIC - IPv4 + IPv6
       dhcp4: false
       dhcp6: false
-      # This NIC belongs to br-ex
-      # No IP directly here
-    enp1s0f1:
-      dhcp4: false
-      dhcp6: false
-      # This NIC belongs to br-int2
-      # No IP directly here
-
-  bridges:
-    br-ex:
-      interfaces: [enp1s0f0]
-      dhcp4: no
+      accept-ra: true  # Accept IPv6 router advertisements from OVH
       addresses:
-        - 162.19.169.215/24
+        - 162.19.169.215/24                    # Main IPv4
+        - 51.38.118.220/32                     # Additional IPv4
+        - 2001:41d0:700:6cd7::1/64            # Main IPv6 address
       routes:
         - to: default
-          via: 162.19.169.254
+          via: 162.19.169.254                  # IPv4 default gateway
+        - to: 51.38.118.220/32
+          scope: link
       nameservers:
-        addresses: [213.186.33.99, 8.8.8.8]
-
-    br-int2:
-      interfaces: [enp1s0f1]
-      dhcp4: no
-      dhcp6: yes   # Allow IPv6 configuration
-      accept-ra: yes
+        addresses:
+          - 213.186.33.99                      # OVH DNS IPv4
+          - 8.8.8.8                            # Google DNS IPv4
+          - 2001:41d0:3:163::1                # OVH DNS IPv6
+    
+    enp1s0f1:  # vRack NIC - IPv4 private + IPv6 vRack
+      dhcp4: false
+      dhcp6: false
+      accept-ra: false
       addresses:
-        - "2001:41d0:700:6cd8::1/64"  # Adjust to your subnet
+        - 10.0.0.1/24                          # Private IPv4 for internal traffic
+        - 2001:41d0:f00:b00::1/64             # vRack IPv6 address
+      routes:
+        - to: 2001:41d0:f00:b00::/64          # vRack IPv6 route
+          scope: link
+      mtu: 9000  # Jumbo frames for better performance
