@@ -18,7 +18,7 @@ sudo apt install -y curl
 sudo apt install -y git
 sudo apt install -y tree
 sudo apt install -y python3
-sudo apt install -y ansibleder t
+sudo apt install -y ansible
 sudo apt install -y python3-venv
 
 # Grafana Alloy install
