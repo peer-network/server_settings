@@ -4,3 +4,4 @@ clouds.yaml
 *.tfstate
 peer_network.yaml
 terraform.tfstate*
+.gitleaks_out/
