@@ -1,0 +1,47 @@
+#cloud-config
+
+# User configuration
+users:
+  - name: peer
+    groups: sudo
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    lock_passwd: false
+    passwd: '$6$vZ/wjbnP7yQ7jV1v$yQeXzmK17PbiOnsG5Z8F0AbCKo1MLCk0UTMVnLteXdkcmA78mNH5fwKdP/e2Ni5tb28By8rUuEkl4zb/UG1Pt1'
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDHr7r2lnUkxuUdAbYeNMfRe2ddGoMrcf5v5QT7Caoba peer@peer-omen
+
+# Package management
+package_update: true
+package_upgrade: false
+
+packages:
+  - software-properties-common
+  - apt-transport-https
+  - wget
+  - gpg
+  - htop
+  - curl
+  - git
+  - tree
+  - python3
+  - ansible
+  - python3-venv
+  - python3-dev
+  - libffi-dev
+  - gcc
+  - libssl-dev
+  - libdbus-glib-1-dev
+
+# Custom commands that need to run after packages
+runcmd:
+  # Grafana Alloy repository setup
+  - mkdir -p /etc/apt/keyrings/
+  - wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | tee /etc/apt/keyrings/grafana.gpg > /dev/null
+  - echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" | tee /etc/apt/sources.list.d/grafana.list
+  - apt-get update
+  - apt-get install -y alloy
+
+# Logging
+output:
+  all: '| tee -a /var/log/cloud-init-output.log'

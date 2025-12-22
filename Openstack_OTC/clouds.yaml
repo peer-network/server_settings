@@ -1,0 +1,11 @@
+clouds:
+  otc:
+    auth:
+      auth_url: https://iam.eu-de.otc.t-systems.com/v3
+      username: gogeek
+      password: "9JRml$h!drpR52B7"
+      project_name: "eu-de_peer"
+      domain_name: "OTC00000000001000122968"
+    region_name: eu-de
+    identity_api_version: 3
+    interface: public

@@ -1,0 +1,44 @@
+# Core settings
+workaround_ansible_issue_8743: yes
+kolla_base_distro: "ubuntu"
+kolla_install_type: "source"
+openstack_release: "2024.1"
+
+# Management network (via wlp4s0 - WiFi interface)
+kolla_internal_vip_address: "192.168.3.27"
+kolla_internal_fqdn: "peeropstk.openstack.local"
+network_interface: "wlp4s0"
+api_interface: "wlp4s0"
+tunnel_interface: "wlp4s0"
+storage_interface: "wlp4s0"
+cluster_interface: "wlp4s0"
+
+# External network (via enp0s31f6 - Ethernet interface)
+neutron_external_interface: "enp0s31f6"
+neutron_plugin_agent: "openvswitch"
+
+# Networking configuration
+neutron_bridge_name: "br-ex"
+# neutron_ovs_bridge_mappings:
+#   - "physnet1:br-ex"
+
+# Logs
+kolla_logs_dir: "/opt/kolla/logs"
+
+# Load balancer (disabled for single node)
+enable_haproxy: "no"
+enable_keepalived: "no"
+
+# Core services
+enable_openstack_core: "yes"
+enable_rabbitmq: "yes"
+rabbitmq_user: "openstack"
+rabbitmq_cluster_cookie: "{{ lookup('file', '/etc/kolla/config/rabbitmq/.erlang.cookie') | trim }}"
+
+# Additional services
+enable_barbican: "yes"
+enable_cinder_backend_lvm: "yes"
+enable_octavia: "yes"
+enable_redis: "yes"
+octavia_jobboard_enabled: "yes"
+cinder_volume_group: "cinder-volumes"

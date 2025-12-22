@@ -1,0 +1,33 @@
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    # Public NIC - Management and API access
+    enp1s0f0:
+      addresses:
+        - 162.19.169.215/32
+        - 51.38.118.220/32  # Failover IP
+        - 2001:41d0:700:6cd7::1/64  # Primary IPv6
+      routes:
+        - to: default
+          via: 162.19.169.254
+          on-link: true
+        - to: default
+          via: fe80::1
+          on-link: true
+      nameservers:
+        addresses:
+          - 213.186.33.99  # OVH DNS
+          - 8.8.8.8
+          - 2001:4860:4860::8888
+      dhcp4: false
+      dhcp6: false
+    
+    # vRack NIC - OpenStack tenant networks (no IP yet, OVS will manage)
+    enp1s0f1:
+      dhcp4: false
+      dhcp6: false
+      addresses:
+        - 10.0.0.1/24  # vRack management IP
+        - 2001:41d0:f00:b00::1/64  # vRack IPv6
+      mtu: 9000  # Enable jumbo frames for vRack performance
